@@ -182,8 +182,11 @@ h1{font-size:clamp(27px,8vw,44px);line-height:1.03;letter-spacing:-.04em;margin:
 
       <div class="card">
         <div class="shortlistBanner">
-          <div><strong><span id="shortCount">0</span> games shortlisted</strong><p>Star any game that matters to Sin or Folk.</p></div>
-          <button class="btn" type="button" id="viewShortBtn">View</button>
+          <div><strong><span id="shortCount">0</span> games shortlisted</strong><p>Star any game that matters to Sin or Folk. Export creates a PNG of the shortlist only.</p></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="btn" type="button" id="viewShortBtn">View</button>
+            <button class="btn primary" type="button" id="exportShortPicBtn">Export picture</button>
+          </div>
         </div>
         <div class="insightList" id="insightList"></div>
         <div class="notice">“Potential new games” is an ownership comparison only. Steam Families eligibility can differ by title, publisher restrictions, region, or account requirements.</div>
@@ -471,6 +474,143 @@ function loadCSV(text){
   if(!next.length)throw new Error("No valid comparison rows were found.");
   rows=next; cleanShortlist(); renderAll(); showToast(`Loaded ${rows.length} games`);
 }
+function exportShortlistPicture(){
+  const selected=rows.filter(r=>shortlist.has(keyOf(r)));
+  if(!selected.length){
+    showToast("Shortlist is empty");
+    return;
+  }
+
+  const groups=[
+    {key:"friend_only",label:"Folk only"},
+    {key:"your_only",label:"Sin only"},
+    {key:"shared",label:"Both own"}
+  ].map(g=>({...g,items:selected.filter(r=>r.category===g.key).sort((a,b)=>a.game.localeCompare(b.game))}))
+   .filter(g=>g.items.length);
+
+  const W=1080;
+  const PAD=70;
+  const headerH=190;
+  const groupHeaderH=58;
+  const rowH=64;
+  const footerH=92;
+  const totalRows=groups.reduce((n,g)=>n+g.items.length,0);
+  const H=Math.max(720, headerH + groups.length*groupHeaderH + totalRows*rowH + footerH + PAD);
+
+  const canvas=document.createElement("canvas");
+  canvas.width=W;
+  canvas.height=H;
+  const ctx=canvas.getContext("2d");
+  if(!ctx){
+    showToast("Image export is not supported here");
+    return;
+  }
+
+  // Background
+  ctx.fillStyle="#0b1118";
+  ctx.fillRect(0,0,W,H);
+
+  // Decorative header band
+  const grad=ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,"#122b3c");
+  grad.addColorStop(1,"#13202b");
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W,headerH);
+
+  ctx.textBaseline="top";
+  ctx.fillStyle="#66c0f4";
+  ctx.font="700 24px system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.fillText("STEAM FAMILY SHORTLIST",PAD,52);
+
+  ctx.fillStyle="#eef5f8";
+  ctx.font="800 48px system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.fillText(`${selected.length} shortlisted game${selected.length===1?"":"s"}`,PAD,88);
+
+  ctx.fillStyle="#93a7b5";
+  ctx.font="400 22px system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.fillText("Sin × Folk library comparison",PAD,148);
+
+  let y=headerH+30;
+
+  function fitText(text,maxWidth,font){
+    ctx.font=font;
+    if(ctx.measureText(text).width<=maxWidth)return text;
+    let lo=0,hi=text.length;
+    while(lo<hi){
+      const mid=Math.ceil((lo+hi)/2);
+      const candidate=text.slice(0,mid)+"…";
+      if(ctx.measureText(candidate).width<=maxWidth)lo=mid;
+      else hi=mid-1;
+    }
+    return text.slice(0,lo)+"…";
+  }
+
+  for(const group of groups){
+    ctx.fillStyle="#182532";
+    roundRect(ctx,PAD,y,W-PAD*2,42,12);
+    ctx.fill();
+
+    ctx.fillStyle="#eef5f8";
+    ctx.font="700 22px system-ui, -apple-system, Segoe UI, sans-serif";
+    ctx.fillText(`${group.label} · ${group.items.length}`,PAD+18,y+9);
+    y+=groupHeaderH;
+
+    group.items.forEach((r,i)=>{
+      if(i%2===0){
+        ctx.fillStyle="#101922";
+        roundRect(ctx,PAD,y-4,W-PAD*2,rowH-6,10);
+        ctx.fill();
+      }
+
+      ctx.fillStyle="#eef5f8";
+      const title=fitText(r.game,700,"700 24px system-ui, -apple-system, Segoe UI, sans-serif");
+      ctx.font="700 24px system-ui, -apple-system, Segoe UI, sans-serif";
+      ctx.fillText(title,PAD+16,y+8);
+
+      ctx.fillStyle="#93a7b5";
+      ctx.font="400 17px system-ui, -apple-system, Segoe UI, sans-serif";
+      ctx.fillText(`App ${r.appid}`,PAD+16,y+38);
+
+      const play=fmtHours(r.playtime_minutes);
+      ctx.textAlign="right";
+      ctx.fillText(play,W-PAD-16,y+22);
+      ctx.textAlign="left";
+
+      y+=rowH;
+    });
+    y+=8;
+  }
+
+  // Footer
+  ctx.strokeStyle="#273746";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(PAD,H-footerH);
+  ctx.lineTo(W-PAD,H-footerH);
+  ctx.stroke();
+
+  ctx.fillStyle="#93a7b5";
+  ctx.font="400 17px system-ui, -apple-system, Segoe UI, sans-serif";
+  ctx.fillText("Shortlist exported from Steam Family Decision Dashboard",PAD,H-footerH+28);
+
+  const link=document.createElement("a");
+  link.download="steam-family-shortlist.png";
+  link.href=canvas.toDataURL("image/png");
+  link.click();
+  showToast("Shortlist picture exported");
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  const rr=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+rr,y);
+  ctx.arcTo(x+w,y,x+w,y+h,rr);
+  ctx.arcTo(x+w,y+h,x,y+h,rr);
+  ctx.arcTo(x,y+h,x,y,rr);
+  ctx.arcTo(x,y,x+w,y,rr);
+  ctx.closePath();
+}
+
 function renderAll(){
   renderOverview(); renderGameList(); renderInsights();
 }
@@ -480,6 +620,7 @@ $("searchInput").addEventListener("input",renderGameList);
 $("sortSelect").addEventListener("change",renderGameList);
 $("playFilterSelect").addEventListener("change",renderGameList);
 $("viewShortBtn").addEventListener("click",()=>{setSection("browse");setFilter("shortlist")});
+$("exportShortPicBtn").addEventListener("click",exportShortlistPicture);
 $("fileInput").addEventListener("change",e=>{
   const f=e.target.files && e.target.files[0]; if(!f)return;
   const reader=new FileReader();
