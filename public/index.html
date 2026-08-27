@@ -1,0 +1,2072 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1118">
+<title>Steam Family Multi Compare v8</title>
+<style>
+:root{
+  --bg:#0b1118;--panel:#131d27;--panel2:#182532;--line:#293a48;
+  --text:#eff6fa;--muted:#94a8b6;--accent:#66c0f4;--accent2:#1a9fff;
+  --good:#77d99b;--warn:#f1c76b;--danger:#ff8e8e;
+}
+*{box-sizing:border-box}
+html{background:var(--bg);color-scheme:dark}
+body{
+  margin:0;
+  background:radial-gradient(circle at 12% -8%,#173249 0,transparent 32rem),var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.app{max-width:1120px;margin:auto;padding:20px 14px 98px}
+.hero{padding:5px 2px 15px}
+.eyebrow{font-size:11px;color:var(--accent);font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+h1{font-size:clamp(28px,8vw,46px);letter-spacing:-.045em;line-height:1.03;margin:6px 0 9px}
+.hero p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;max-width:800px}
+.panel,.card{background:rgba(19,29,39,.95);border:1px solid var(--line);border-radius:17px;padding:14px}
+.setupDetails{margin-bottom:12px}
+.setupSummary{
+  list-style:none;cursor:pointer;min-height:48px;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;background:#111b24;border:1px solid var(--line);border-radius:14px;padding:11px 13px;
+  font-size:13px;font-weight:900
+}
+.setupSummary::-webkit-details-marker{display:none}
+.setupSummary::after{content:"⌄";color:var(--muted);font-size:18px}
+.setupDetails[open] .setupSummary{border-radius:14px 14px 0 0;border-bottom-color:transparent}
+.setupDetails[open] .setupSummary::after{content:"⌃"}
+.setupDetails .panel{border-radius:0 0 17px 17px;margin-top:0}
+.setupSummary small{font-size:10px;color:var(--muted);font-weight:700}
+.progressWrap{margin-top:9px}
+.progressTrack{height:7px;background:#1c2a35;border-radius:999px;overflow:hidden}
+.progressFill{height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:999px;transition:width .2s ease}
+.progressText{font-size:10px;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;gap:8px}
+.apiBox{margin-bottom:12px;background:#101922;border:1px solid var(--line);border-radius:14px;padding:12px}
+.apiGrid{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:5px}
+input,select{
+  width:100%;min-height:46px;border:1px solid var(--line);border-radius:11px;
+  background:#0d161e;color:var(--text);padding:10px 11px;font-size:16px;outline:none
+}
+input:focus,select:focus{border-color:var(--accent)}
+.help{font-size:11px;color:var(--muted);line-height:1.45;margin-top:7px}
+.help strong{color:#d8e6ee}
+.profileList{display:grid;gap:10px}
+.profileRow{background:#101922;border:1px solid var(--line);border-radius:14px;padding:12px}
+.profileHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}
+.profileHead strong{font-size:13px}
+.remove{min-height:38px;border:1px solid var(--line);border-radius:10px;background:#1a2732;color:var(--muted);padding:7px 10px;cursor:pointer}
+.fields{display:grid;grid-template-columns:1fr;gap:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.btn{min-height:44px;border:1px solid var(--line);border-radius:11px;background:#1a2935;color:var(--text);padding:10px 13px;font-weight:850;cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,var(--accent2),var(--accent));border-color:transparent;color:#06141c}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.switch{display:flex;gap:7px;align-items:center;font-size:12px;color:var(--muted);min-height:44px}
+.switch input{width:auto;min-height:auto}
+.status{min-height:20px;font-size:12px;color:var(--muted);margin-top:9px}
+.status.err{color:var(--danger)}
+.warning{margin-top:10px;border:1px solid #5f4b31;background:#211d14;color:#d9c699;border-radius:12px;padding:10px;font-size:11px;line-height:1.45}
+.hidden{display:none!important}
+.section{display:none}
+.section.active{display:block}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.kpi{background:#101922;border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}
+.kpi b{font-size:27px;display:block;letter-spacing:-.04em}
+.kpi span{font-size:11px;color:var(--muted);display:block;margin-top:4px;line-height:1.3}
+.people{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
+.person{background:#101922;border:1px solid var(--line);border-radius:15px;padding:12px;min-width:0}
+.personTop{display:flex;gap:10px;align-items:center}
+.avatar{width:46px;height:46px;border-radius:10px;background:#22323f;object-fit:cover}
+.personName{font-weight:900;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.steamName{font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.personStats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.mini{background:#15212b;border-radius:10px;padding:8px;min-width:0}
+.mini b{font-size:17px;display:block}
+.mini span{font-size:9px;color:var(--muted)}
+.insightGrid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+.card h2{font-size:16px;margin:0 0 10px}
+.insight{background:#101922;border-radius:12px;padding:10px;margin-top:8px}
+.insight b{font-size:13px;display:block}
+.insight span{font-size:11px;color:var(--muted);line-height:1.4;display:block;margin-top:3px}
+.controls{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
+.chips{display:flex;gap:7px;overflow:auto;padding:1px 0 5px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{min-height:39px;white-space:nowrap;border:1px solid var(--line);border-radius:999px;background:#15212c;color:var(--muted);font-size:11px;font-weight:850;padding:8px 11px;cursor:pointer}
+.chip.active{background:var(--accent);color:#07141c;border-color:var(--accent)}
+.listTop{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:10px 0 8px}
+.listTop b{font-size:13px}
+.listTop span{font-size:11px;color:var(--muted)}
+.games{display:grid;gap:8px}
+.game{background:#101922;border:1px solid var(--line);border-radius:14px;padding:11px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center}
+.gameName{font-weight:850;font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.meta{display:flex;gap:6px;flex-wrap:wrap;color:var(--muted);font-size:10px;margin-top:5px}
+.badge{background:#1b2b37;border-radius:999px;padding:3px 7px}
+.owners{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.45}
+.star{width:44px;height:44px;border:1px solid var(--line);border-radius:11px;background:#182632;color:#8fa4b2;font-size:21px;cursor:pointer}
+.star.on{color:var(--warn);border-color:#6d5e32;background:#2a2619}
+.gameActions{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.game{
+  grid-template-columns:94px minmax(0,1fr) auto;
+}
+.gameThumb,.shortThumb,.discoverThumb{
+  width:94px;aspect-ratio:460/215;object-fit:cover;border-radius:10px;background:#202e39;
+  align-self:start
+}
+.gameThumbWrap{position:relative;align-self:start}
+.imgFallback{
+  width:94px;aspect-ratio:460/215;border-radius:10px;background:linear-gradient(135deg,#203747,#17232d);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:10px;text-align:center;padding:5px
+}
+.detailsBtn{
+  min-height:34px;border:1px solid var(--line);border-radius:9px;background:#172733;color:var(--text);
+  font-size:10px;font-weight:850;padding:6px 8px;cursor:pointer
+}
+.ratingBadge{background:#193226;color:#aee5bf}
+.ratingBadge.warn{background:#382e17;color:#efd28e}
+.ratingBadge.bad{background:#3b2020;color:#ffb2b2}
+
+.discoverHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px}
+.discoverHead h2{font-size:18px;margin:0}
+.discoverHead p{font-size:11px;color:var(--muted);line-height:1.45;margin:4px 0 0;max-width:650px}
+.discoverControls{display:grid;grid-template-columns:1fr;gap:8px;margin:10px 0}
+.enrichProgress{margin:10px 0}
+.discoverGrid{display:grid;gap:9px}
+.discoverCard{
+  background:#101922;border:1px solid var(--line);border-radius:15px;padding:10px;
+  display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:10px;align-items:start
+}
+.discoverThumb{width:112px}
+.discoverTitle{font-size:14px;font-weight:900;line-height:1.25}
+.discoverScore{font-size:18px;font-weight:950;color:var(--accent);text-align:right;white-space:nowrap}
+.genreBars{display:grid;gap:8px}
+.genreRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.genreName{font-size:12px}
+.genreValue{font-size:10px;color:var(--muted)}
+.genreTrack{grid-column:1/-1;height:6px;border-radius:999px;background:#1d2a35;overflow:hidden}
+.genreFill{height:100%;border-radius:999px;background:var(--accent)}
+.enrichNote{font-size:10px;color:var(--muted);line-height:1.45;padding:9px 10px;border:1px dashed #354957;border-radius:11px;margin-top:10px}
+
+dialog.gameDialog{
+  width:min(720px,calc(100% - 20px));max-height:88%;border:1px solid var(--line);border-radius:18px;
+  background:#0f1821;color:var(--text);padding:0;overflow:auto
+}
+dialog.gameDialog::backdrop{background:rgba(0,0,0,.72)}
+.dialogHero{position:relative}
+.dialogHero img{display:block;width:100%;aspect-ratio:460/215;object-fit:cover;background:#1b2934}
+.dialogShade{position:absolute;inset:auto 0 0;background:linear-gradient(transparent,rgba(8,13,18,.96));padding:42px 15px 13px}
+.dialogShade h2{margin:0;font-size:23px;line-height:1.1}
+.dialogClose{
+  position:absolute;right:10px;top:10px;width:42px;height:42px;border-radius:999px;border:1px solid #ffffff35;
+  background:#081018d9;color:white;font-size:20px;cursor:pointer;z-index:2
+}
+.dialogBody{padding:14px}
+.detailKpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.detailKpi{background:#141f29;border-radius:11px;padding:10px}
+.detailKpi b{display:block;font-size:17px}.detailKpi span{font-size:9px;color:var(--muted)}
+.detailSection{margin-top:14px}
+.detailSection h3{font-size:13px;margin:0 0 7px}
+.tagWrap{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:10px;padding:4px 7px;border-radius:999px;background:#1a2a36;color:#c4d3dc}
+.reviewCard{background:#141f29;border-radius:11px;padding:10px;margin-top:7px}
+.reviewCard p{font-size:11px;line-height:1.45;margin:5px 0 0;color:#dce7ed;white-space:pre-wrap}
+.reviewTop{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--muted)}
+.achievementRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;background:#141f29;border-radius:10px;padding:9px;margin-top:6px}
+.achievementRow b{font-size:11px}.achievementRow span{font-size:10px;color:var(--muted)}
+.dialogLoading{padding:12px;border-radius:11px;background:#141f29;color:var(--muted);font-size:11px}
+.metaLine{font-size:11px;color:var(--muted);line-height:1.5;margin-top:7px}
+.clickableImg{cursor:pointer}
+@media(max-width:420px){
+  .game{grid-template-columns:78px minmax(0,1fr) auto}
+  .gameThumb,.imgFallback{width:78px}
+  .discoverCard{grid-template-columns:92px minmax(0,1fr)}
+  .discoverThumb{width:92px}
+  .discoverScore{grid-column:2;text-align:left;font-size:14px}
+}
+@media(min-width:680px){
+  .discoverControls{grid-template-columns:220px 1fr}
+  .discoverGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .detailKpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+.storeLink{
+  min-height:34px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+  border-radius:9px;background:#15232e;color:var(--accent);font-size:10px;font-weight:850;
+  text-decoration:none;padding:6px 8px
+}
+.utilityRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:9px 0 4px}
+.utilityRow .btn{min-height:40px;font-size:11px}
+.impactRows{display:grid;gap:7px}
+.impactRow{background:#101922;border-radius:11px;padding:9px 10px;display:flex;justify-content:space-between;gap:10px}
+.impactRow strong{font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.impactRow span{font-size:10px;color:var(--muted);white-space:nowrap}
+.pairHero{background:#101922;border-radius:12px;padding:11px}
+.pairHero b{font-size:14px;display:block}
+.pairHero span{font-size:11px;color:var(--muted);line-height:1.45;display:block;margin-top:4px}
+.rank{display:grid;gap:7px}
+.rankRow{display:flex;justify-content:space-between;gap:10px;font-size:11px;background:#101922;padding:9px;border-radius:10px}
+.rankRow strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{text-align:center;color:var(--muted);font-size:12px;padding:24px 8px}
+
+/* Shortlist */
+.shortTop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.shortTop h2{font-size:18px;margin:0}
+.shortTop p{font-size:11px;color:var(--muted);margin:4px 0 0}
+.shortGroups{display:grid;gap:12px}
+.libraryGroup{border:1px solid var(--line);border-radius:16px;background:#101922;overflow:hidden}
+.libraryGroupHead{padding:12px 13px;background:#16232e;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.libraryIdentity{display:flex;gap:9px;align-items:center;min-width:0}
+.libraryAvatar{width:38px;height:38px;border-radius:9px;background:#24333e;object-fit:cover}
+.libraryTitle{min-width:0}
+.libraryTitle strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.libraryTitle span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.groupCount{font-size:11px;color:var(--muted);white-space:nowrap}
+.groupGames{display:grid;gap:0}
+.shortGame{display:grid;grid-template-columns:94px minmax(0,1fr) auto;gap:9px;align-items:center;padding:11px 13px;border-top:1px solid var(--line)}
+.shortGame:first-child{border-top:0}
+.sourceNote{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.4}
+.shortToolbar{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px}
+.duplicateNote{font-size:10px;color:var(--muted);line-height:1.45;margin-top:10px;padding:9px 10px;border:1px dashed #354957;border-radius:11px}
+
+.bottomNav{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,1120px);
+  display:grid;grid-template-columns:repeat(5,1fr);gap:3px;background:rgba(9,15,21,.96);
+  border-top:1px solid var(--line);padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+  backdrop-filter:blur(12px);z-index:5
+}
+.nav{min-height:49px;border:0;border-radius:11px;background:transparent;color:var(--muted);font-size:10px;font-weight:850;cursor:pointer;padding:4px}
+.nav b{display:block;font-size:18px}
+.nav.active{background:#172532;color:var(--text)}
+.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#263a49;border-radius:10px;padding:9px 12px;font-size:11px;opacity:0;pointer-events:none;transition:.18s;z-index:8}
+.toast.show{opacity:1}
+
+@media(min-width:680px){
+  .app{padding:28px 22px 104px}
+  .fields{grid-template-columns:1.45fr .75fr}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .people{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .insightGrid{grid-template-columns:1fr 1fr}
+  .controls{grid-template-columns:minmax(0,1fr) 180px 190px}
+  .games{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .shortToolbar{grid-template-columns:minmax(0,1fr) 200px}
+}
+@media(min-width:980px){
+  .people{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .games{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <div class="eyebrow">Steam Family decision</div>
+    <h1>Compare, discover & decide</h1>
+    <p>Compare 2–8 Steam libraries, see game artwork, shortlist by source library, and enrich games with ratings, genres, co-op features, reviews, live players and achievements. The Steam API key stays in Cloudflare Pages as a server-side secret.</p>
+  </header>
+
+  <section id="setupSection">
+    <details id="setupDetails" class="setupDetails" open>
+      <summary class="setupSummary">
+        <span>Profiles & API</span>
+        <small id="setupSummaryText">2 profiles · ready to compare</small>
+      </summary>
+      <div class="panel">
+      <div class="apiBox">
+        <div class="help"><strong>Server-side mode.</strong> The page calls Cloudflare Pages Functions at <code>/api/...</code>. Your Steam API key is not exposed to visitors.</div>
+      </div>
+
+      <div id="profileList" class="profileList"></div>
+
+      <div class="actions">
+        <button class="btn" id="addProfileBtn" type="button">＋ Add profile</button>
+        <button class="btn primary" id="compareBtn" type="button">Fetch & compare</button>
+        <label class="switch"><input id="includeFree" type="checkbox"> Include played free games</label>
+      </div>
+
+      <div class="status" id="status" aria-live="polite"></div>
+      <div class="progressWrap" id="progressWrap">
+        <div class="progressTrack"><div class="progressFill" id="progressFill"></div></div>
+        <div class="progressText"><span id="progressLabel">Waiting</span><span id="progressPct">0%</span></div>
+      </div>
+      <div class="warning">Cloudflare Pages mode: Steam requests are made server-side through same-origin Pages Functions, avoiding browser CORS issues.</div>
+    </div>
+    </details>
+  </section>
+
+  <main id="dashboard" class="hidden">
+    <section class="section active" data-section="overview">
+      <div class="kpis">
+        <div class="kpi"><b id="peopleKpi">0</b><span>People compared</span></div>
+        <div class="kpi"><b id="unionKpi">0</b><span>Combined unique games</span></div>
+        <div class="kpi"><b id="allOwnKpi">0</b><span>Owned by everyone</span></div>
+        <div class="kpi"><b id="exclusiveKpi">0</b><span>Owned by exactly one person</span></div>
+      </div>
+
+      <div class="people" id="peopleCards"></div>
+
+      <div class="insightGrid">
+        <div class="card">
+          <h2>Decision signals</h2>
+          <div id="decisionInsights"></div>
+        </div>
+        <div class="card">
+          <h2>Shortlist</h2>
+          <div class="insight"><b><span id="shortCount">0</span> starred games</b><span>Shortlist now has its own page and separates starred games by the library they come from.</span></div>
+          <div class="actions">
+            <button class="btn" id="viewShortBtn" type="button">Open shortlist</button>
+            <button class="btn primary" id="exportOverviewPicBtn" type="button">Export picture</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Best pair match</h2>
+          <div id="bestPair"></div>
+        </div>
+        <div class="card">
+          <h2>Shortlist impact</h2>
+          <div id="shortlistImpact" class="impactRows"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-section="games">
+      <div class="panel">
+        <div class="controls">
+          <input id="searchInput" type="search" placeholder="Search game or App ID…">
+          <select id="viewSelect" aria-label="Game view">
+            <option value="all">View: All games</option>
+            <option value="exclusive">View: Owned by 1</option>
+            <option value="partial">View: Owned by some</option>
+            <option value="everyone">View: Owned by everyone</option>
+          </select>
+          <select id="sortSelect" aria-label="Sort games">
+            <option value="name_asc">Sort: A–Z</option>
+            <option value="name_desc">Sort: Z–A</option>
+            <option value="owners_asc">Sort: Fewest owners</option>
+            <option value="owners_desc">Sort: Most owners</option>
+            <option value="play_desc">Sort: Most total playtime</option>
+            <option value="play_asc">Sort: Least total playtime</option>
+          </select>
+        </div>
+
+        <div class="chips" id="personChips"></div>
+        <div class="utilityRow">
+          <button class="btn" id="exportViewCsvBtn" type="button">Export filtered CSV</button>
+          <span class="help">Person filters can show games a person owns or is missing.</span>
+        </div>
+        <div class="listTop"><b id="gameViewTitle">All games</b><span id="gameCount">0 results</span></div>
+        <div class="games" id="gameList"></div>
+      </div>
+    </section>
+
+    <section class="section" data-section="shortlist">
+      <div class="panel">
+        <div class="shortTop">
+          <div>
+            <h2>★ Shortlist by source library</h2>
+            <p>A shared starred game appears under every compared library that owns it.</p>
+          </div>
+          <div class="actions" style="margin-top:0">
+            <button class="btn" id="clearShortlistBtn" type="button">Clear shortlist</button>
+            <button class="btn primary" id="exportShortlistPicBtn" type="button">Export shortlist picture</button>
+          </div>
+        </div>
+
+        <div class="shortToolbar">
+          <input id="shortSearchInput" type="search" placeholder="Search shortlisted games…">
+          <select id="shortSortSelect" aria-label="Sort shortlist">
+            <option value="name_asc">Sort: A–Z</option>
+            <option value="name_desc">Sort: Z–A</option>
+            <option value="play_desc">Sort: Most played</option>
+            <option value="play_asc">Sort: Least played</option>
+          </select>
+        </div>
+
+        <div id="shortlistSummary" class="listTop"><b>0 unique starred games</b><span>0 library entries</span></div>
+        <div id="shortGroups" class="shortGroups"></div>
+        <div class="duplicateNote">Why a game can appear more than once here: this page is intentionally grouped by <b>whose library the game comes from</b>. If both Sin and Folk own a starred game, it appears in both source-library sections.</div>
+      </div>
+    </section>
+
+    <section class="section" data-section="discover">
+      <div class="panel">
+        <div class="discoverHead">
+          <div>
+            <h2>Discover & recommendations</h2>
+            <p>Enrich games with Steam Store metadata and review summaries to find highly rated gains, co-op options, hidden gems, genre patterns, and neglected backlog games.</p>
+          </div>
+          <div class="actions" style="margin-top:0">
+            <button class="btn" id="quickAnalyzeBtn" type="button">Quick analyze</button>
+            <button class="btn primary" id="analyzeAllBtn" type="button">Analyze all</button>
+            <button class="btn hidden" id="stopAnalyzeBtn" type="button">Stop</button>
+          </div>
+        </div>
+
+        <div class="discoverControls">
+          <select id="discoverPersonSelect" aria-label="Discover recommendations for person"></select>
+          <div class="chips" id="discoverChips">
+            <button class="chip active" type="button" data-discover="best">🔥 Best gains</button>
+            <button class="chip" type="button" data-discover="coop">🤝 Co-op</button>
+            <button class="chip" type="button" data-discover="hidden">💎 Hidden gems</button>
+            <button class="chip" type="button" data-discover="rated">🏆 Highest rated</button>
+            <button class="chip" type="button" data-discover="backlog">😴 Great backlog</button>
+            <button class="chip" type="button" data-discover="genres">🎭 Genres</button>
+          </div>
+        </div>
+
+        <div class="enrichProgress">
+          <div class="progressTrack"><div class="progressFill" id="enrichProgressFill"></div></div>
+          <div class="progressText"><span id="enrichProgressLabel">No enriched games yet</span><span id="enrichProgressPct">0%</span></div>
+        </div>
+
+        <div id="discoverSummary" class="insight"></div>
+        <div id="discoverList" class="discoverGrid"></div>
+        <div class="enrichNote">
+          Quick analyze prioritizes the most relevant games so mobile use stays fast. Analyze all can make hundreds of Store/review requests and may be slow or hit browser/Steam CORS limits. Enriched metadata is cached on this device; live player counts and achievements are loaded only when you open a game.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-section="insights">
+      <div class="insightGrid">
+        <div class="card"><h2>Most exclusive libraries</h2><div class="rank" id="exclusiveRank"></div></div>
+        <div class="card"><h2>Most new games available</h2><div class="rank" id="missingRank"></div></div>
+        <div class="card"><h2>Most-played shortlisted games</h2><div class="rank" id="shortRank"></div></div>
+        <div class="card">
+          <h2>How comparison works</h2>
+          <div class="insight"><b>Exclusive</b><span>Only one of the compared people owns the game.</span></div>
+          <div class="insight"><b>Shared by some</b><span>More than one person owns it, but not everyone.</span></div>
+          <div class="insight"><b>Owned by everyone</b><span>Every compared library contains that App ID.</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav id="nav" class="bottomNav hidden">
+  <button class="nav active" type="button" data-nav="overview"><b>◉</b>Overview</button>
+  <button class="nav" type="button" data-nav="games"><b>⌕</b>Games</button>
+  <button class="nav" type="button" data-nav="shortlist"><b>★</b>Shortlist</button>
+  <button class="nav" type="button" data-nav="discover"><b>◇</b>Discover</button>
+  <button class="nav" type="button" data-nav="insights"><b>▥</b>Insights</button>
+</nav>
+
+<dialog id="gameDialog" class="gameDialog" aria-label="Game details">
+  <div class="dialogHero">
+    <button id="dialogCloseBtn" class="dialogClose" type="button" aria-label="Close game details">×</button>
+    <img id="dialogImage" alt="">
+    <div class="dialogShade">
+      <h2 id="dialogTitle">Game details</h2>
+      <div id="dialogSubtitle" class="metaLine"></div>
+    </div>
+  </div>
+  <div id="dialogBody" class="dialogBody"></div>
+</dialog>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+
+  let libraries=[];
+  let games=[];
+  let personFilter="all";
+  let currentVisibleGames=[];
+  let shortlist=new Set();
+  let discoverMode="best";
+  let enrichmentCache={};
+  let livePlayerCache={};
+  let achievementSessionCache={};
+  let enrichmentStop=false;
+  const ENRICH_TTL=24*60*60*1000;
+
+  try{
+    const saved=JSON.parse(localStorage.getItem("steam-game-enrichment-v7")||"{}");
+    if(saved&&typeof saved==="object")enrichmentCache=saved;
+  }catch(_){}
+
+
+  try{
+    const saved=JSON.parse(localStorage.getItem("steam-multi-shortlist-v5")||"[]");
+    if(Array.isArray(saved))shortlist=new Set(saved.map(String));
+  }catch(_){}
+
+  function escapeHtml(v){
+    return String(v??"").replace(/[&<>"']/g,c=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[c]));
+  }
+
+  function toast(msg){
+    const t=$("toast");
+    t.textContent=msg;
+    t.classList.add("show");
+    clearTimeout(toast.timer);
+    toast.timer=setTimeout(()=>t.classList.remove("show"),1600);
+  }
+
+  function setStatus(msg,bad=false){
+    $("status").textContent=msg;
+    $("status").className="status"+(bad?" err":"");
+  }
+
+  function saveShortlist(){
+    try{
+      localStorage.setItem("steam-multi-shortlist-v5",JSON.stringify([...shortlist]));
+    }catch(_){}
+  }
+
+  function fmtHours(minutes){
+    const h=(Number(minutes)||0)/60;
+    if(!h)return "0 h";
+    return h<10?`${h.toFixed(1)} h`:`${Math.round(h)} h`;
+  }
+
+  function setProgress(value,label=""){
+    const pct=Math.max(0,Math.min(100,Math.round(Number(value)||0)));
+    $("progressFill").style.width=`${pct}%`;
+    $("progressPct").textContent=`${pct}%`;
+    if(label)$("progressLabel").textContent=label;
+  }
+
+  function updateSetupSummary(){
+    const count=profileRows().length;
+    const names=profileRows()
+      .map(row=>row.querySelector(".nickname")?.value.trim())
+      .filter(Boolean);
+    const label=names.length
+      ? `${count} profiles · ${names.slice(0,3).join(", ")}${names.length>3?"…":""}`
+      : `${count} profiles · ready to compare`;
+    $("setupSummaryText").textContent=label;
+  }
+
+  function saveProfileSetup(){
+    const profiles=profileRows().map(row=>({
+      url:row.querySelector(".profileUrl").value.trim(),
+      nickname:row.querySelector(".nickname").value.trim()
+    }));
+    try{
+      localStorage.setItem("steam-multi-profile-setup-v6",JSON.stringify({
+        profiles,
+        include_free:$("includeFree").checked
+      }));
+    }catch(_){}
+    updateSetupSummary();
+  }
+
+  function restoreProfileSetup(){
+    try{
+      const saved=JSON.parse(localStorage.getItem("steam-multi-profile-setup-v6")||"null");
+      if(!saved||!Array.isArray(saved.profiles)||saved.profiles.length<2)return false;
+      $("profileList").innerHTML="";
+      saved.profiles.slice(0,8).forEach(p=>addProfile(p.url||"",p.nickname||"",false));
+      $("includeFree").checked=Boolean(saved.include_free);
+      renumberProfiles();
+      updateSetupSummary();
+      return true;
+    }catch(_){
+      return false;
+    }
+  }
+
+
+  function gameImageUrl(appid){
+    return `https://shared.steamstatic.com/store_item_assets/steam/apps/${Number(appid)}/header.jpg`;
+  }
+
+  function gameImageFallbackUrl(appid){
+    return `https://cdn.akamai.steamstatic.com/steam/apps/${Number(appid)}/header.jpg`;
+  }
+
+  function gameImageHtml(appid,name,cls="gameThumb",details=false){
+    const safeName=escapeHtml(name);
+    const detailAttr=details?` data-open-game="${Number(appid)}"`:"";
+    return `<img class="${cls} clickableImg" loading="lazy" src="${gameImageUrl(appid)}" alt="${safeName} artwork"${detailAttr} onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='${gameImageFallbackUrl(appid)}'}else{this.style.display='none'}">`;
+  }
+
+  function saveEnrichmentCache(){
+    try{
+      const keys=Object.keys(enrichmentCache);
+      if(keys.length>500){
+        keys.sort((a,b)=>(enrichmentCache[b]?.ts||0)-(enrichmentCache[a]?.ts||0));
+        const keep=new Set(keys.slice(0,500));
+        Object.keys(enrichmentCache).forEach(k=>{if(!keep.has(k))delete enrichmentCache[k]});
+      }
+      localStorage.setItem("steam-game-enrichment-v7",JSON.stringify(enrichmentCache));
+    }catch(_){}
+  }
+
+  async function fetchJsonWithTimeout(url,timeoutMs=12000){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    try{
+      const res=await fetch(url,{method:"GET",mode:"cors",signal:controller.signal});
+      if(!res.ok)throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+
+  async function getStoreMetadata(appid){
+    const url=`https://store.steampowered.com/api/appdetails?appids=${Number(appid)}&cc=us&l=english`;
+    const data=await fetchJsonWithTimeout(url);
+    const entry=data?.[String(appid)];
+    if(!entry?.success||!entry.data)throw new Error("Store metadata unavailable");
+    const d=entry.data;
+    return {
+      type:d.type||"",
+      is_free:Boolean(d.is_free),
+      short_description:d.short_description||"",
+      developers:Array.isArray(d.developers)?d.developers:[],
+      publishers:Array.isArray(d.publishers)?d.publishers:[],
+      platforms:d.platforms||{},
+      metacritic:d.metacritic?.score??null,
+      genres:Array.isArray(d.genres)?d.genres.map(x=>x.description).filter(Boolean):[],
+      categories:Array.isArray(d.categories)?d.categories.map(x=>x.description).filter(Boolean):[],
+      release_date:d.release_date?.date||"",
+      coming_soon:Boolean(d.release_date?.coming_soon),
+      price:d.price_overview?.final_formatted||"",
+      header_image:d.header_image||gameImageUrl(appid)
+    };
+  }
+
+  async function getReviewSummary(appid){
+    const params=new URLSearchParams({
+      json:"1",
+      filter:"all",
+      language:"all",
+      day_range:"365",
+      review_type:"all",
+      purchase_type:"all",
+      num_per_page:"3"
+    });
+    const data=await fetchJsonWithTimeout(`https://store.steampowered.com/appreviews/${Number(appid)}?${params.toString()}`);
+    const q=data?.query_summary||{};
+    const total=Number(q.total_reviews)||0;
+    const pos=Number(q.total_positive)||0;
+    const neg=Number(q.total_negative)||0;
+    const percent=total?Math.round((pos/total)*100):null;
+    const reviews=(Array.isArray(data?.reviews)?data.reviews:[]).slice(0,3).map(r=>({
+      voted_up:Boolean(r.voted_up),
+      votes_up:Number(r.votes_up)||0,
+      language:r.language||"",
+      review:String(r.review||"").slice(0,700),
+      playtime_minutes:Number(r.author?.playtime_forever)||0,
+      developer_response:String(r.developer_response||"").slice(0,500)
+    }));
+    return {
+      score_desc:q.review_score_desc||"",
+      review_score:Number(q.review_score)||0,
+      total_reviews:total,
+      total_positive:pos,
+      total_negative:neg,
+      positive_percent:percent,
+      reviews
+    };
+  }
+
+  async function getGameEnrichment(appid,force=false){
+    const key=String(appid);
+    const cached=enrichmentCache[key];
+    if(!force&&cached&&Date.now()-(cached.ts||0)<ENRICH_TTL)return cached;
+
+    const data=await fetchJsonWithTimeout(`/api/game?appid=${Number(appid)}&scope=meta`,18000);
+    const result={
+      appid:Number(appid),
+      ts:Date.now(),
+      store:data.store||null,
+      reviews:data.reviews||null,
+      current_players:Number.isFinite(data.current_players)?data.current_players:null,
+      errors:Array.isArray(data.errors)?data.errors:[]
+    };
+
+    if(result.store||result.reviews){
+      enrichmentCache[key]=result;
+      saveEnrichmentCache();
+    }
+    return result;
+  }
+
+  function enrichmentFor(appid){
+    const e=enrichmentCache[String(appid)];
+    if(!e)return null;
+    if(Date.now()-(e.ts||0)>ENRICH_TTL)return e; // stale data is still useful for UI until refreshed
+    return e;
+  }
+
+  function ratingHtml(e){
+    const r=e?.reviews;
+    if(!r||r.positive_percent===null)return "";
+    const cls=r.positive_percent>=85?"ratingBadge":r.positive_percent>=70?"ratingBadge warn":"ratingBadge bad";
+    return `<span class="badge ${cls}">${r.positive_percent}% · ${escapeHtml(r.score_desc||"reviews")}</span>`;
+  }
+
+  function isCoop(e){
+    const cats=(e?.store?.categories||[]).join(" ").toLowerCase();
+    return /co-op|coop|multi-player|multiplayer/.test(cats);
+  }
+
+  function recommendationScore(g,e,personIndex){
+    const r=e?.reviews;
+    const rating=r?.positive_percent??50;
+    const reviewConfidence=Math.min(15,Math.log10(Math.max(1,r?.total_reviews||1))*4);
+    const ownerPlay=Math.max(0,...g.owners.map(i=>g.playtimes[i]||0));
+    const playScore=Math.min(20,Math.log10(1+ownerPlay/60)*8);
+    const ownerScore=Math.min(10,g.owners.length*2.5);
+    const coopBonus=isCoop(e)?3:0;
+    const shortBonus=shortlist.has(String(g.appid))?7:0;
+    return Math.round(rating*.5+reviewConfidence+playScore+ownerScore+coopBonus+shortBonus);
+  }
+
+  function attachGameOpenHandlers(root=document){
+    root.querySelectorAll("[data-open-game]").forEach(el=>{
+      el.addEventListener("click",()=>openGameDetails(Number(el.dataset.openGame)));
+    });
+  }
+
+  function profileRows(){
+    return [...document.querySelectorAll(".profileRow")];
+  }
+
+  function addProfile(url="",nickname="",shouldSave=true){
+    if(profileRows().length>=8){
+      toast("Maximum 8 profiles");
+      return;
+    }
+
+    const row=document.createElement("div");
+    row.className="profileRow";
+    row.innerHTML=`
+      <div class="profileHead">
+        <strong>Profile</strong>
+        <button class="remove" type="button">Remove</button>
+      </div>
+      <div class="fields">
+        <div>
+          <label>Steam profile URL</label>
+          <input class="profileUrl" type="url" placeholder="https://steamcommunity.com/id/name/" value="${escapeHtml(url)}">
+        </div>
+        <div>
+          <label>Nickname (optional)</label>
+          <input class="nickname" type="text" maxlength="40" placeholder="Use Steam username" value="${escapeHtml(nickname)}">
+        </div>
+      </div>`;
+
+    row.querySelector(".remove").addEventListener("click",()=>{
+      if(profileRows().length<=2){
+        toast("Keep at least 2 profiles");
+        return;
+      }
+      row.remove();
+      renumberProfiles();
+      saveProfileSetup();
+    });
+
+    row.querySelector(".profileUrl").addEventListener("input",saveProfileSetup);
+    row.querySelector(".nickname").addEventListener("input",saveProfileSetup);
+
+    $("profileList").appendChild(row);
+    renumberProfiles();
+    if(shouldSave)saveProfileSetup();
+  }
+
+  function renumberProfiles(){
+    const rows=profileRows();
+    rows.forEach((row,i)=>{
+      row.querySelector(".profileHead strong").textContent=`Profile ${i+1}`;
+      row.querySelector(".remove").disabled=rows.length<=2;
+    });
+    $("addProfileBtn").disabled=rows.length>=8;
+    updateSetupSummary();
+  }
+
+  function collectProfiles(){
+    return profileRows().map(row=>({
+      url:row.querySelector(".profileUrl").value.trim(),
+      nickname:row.querySelector(".nickname").value.trim()
+    }));
+  }
+
+  async function steamGet(path,params){
+    const url=new URL(`https://api.steampowered.com${path}`);
+    for(const [key,value] of Object.entries(params)){
+      if(value!==undefined && value!==null)url.searchParams.set(key,String(value));
+    }
+
+    try{
+      const res=await fetch(url.toString(),{method:"GET",mode:"cors"});
+      if(!res.ok){
+        const txt=(await res.text()).slice(0,250);
+        throw new Error(`Steam API HTTP ${res.status}${txt?`: ${txt}`:""}`);
+      }
+      return await res.json();
+    }catch(err){
+      if(err instanceof TypeError){
+        throw new Error("Failed to fetch Steam API. The browser may be blocking the request because of CORS. The API key may still be valid.");
+      }
+      throw err;
+    }
+  }
+
+
+  async function getCurrentPlayers(appid){
+    const key=String(appid);
+    const cached=livePlayerCache[key];
+    if(cached&&Date.now()-cached.ts<10*60*1000)return cached.value;
+
+    const existing=enrichmentFor(appid);
+    if(existing&&Number.isFinite(existing.current_players)){
+      livePlayerCache[key]={ts:Date.now(),value:existing.current_players};
+      return existing.current_players;
+    }
+
+    try{
+      const data=await fetchJsonWithTimeout(`/api/game?appid=${Number(appid)}&scope=meta`,18000);
+      const value=Number.isFinite(data.current_players)?data.current_players:null;
+      livePlayerCache[key]={ts:Date.now(),value};
+      return value;
+    }catch(_){
+      return null;
+    }
+  }
+
+  async function getPlayerAchievementsForGame(steamid,appid){
+    const cacheKey=`${steamid}:${appid}`;
+    if(achievementSessionCache[cacheKey])return achievementSessionCache[cacheKey];
+
+    try{
+      const data=await fetchJsonWithTimeout(
+        `/api/game?appid=${Number(appid)}&scope=achievement&steamid=${encodeURIComponent(steamid)}`,
+        18000
+      );
+      const result=data.player_achievement||null;
+      achievementSessionCache[cacheKey]=result;
+      if(data.global_achievement_percentages){
+        achievementSessionCache[`global:${appid}`]=new Map(
+          Object.entries(data.global_achievement_percentages).map(([k,v])=>[k,Number(v)||0])
+        );
+      }
+      return result;
+    }catch(_){
+      return null;
+    }
+  }
+
+  async function getGlobalAchievementPercentages(appid){
+    const cacheKey=`global:${appid}`;
+    if(achievementSessionCache[cacheKey])return achievementSessionCache[cacheKey];
+
+    try{
+      const data=await fetchJsonWithTimeout(
+        `/api/game?appid=${Number(appid)}&scope=globalachievements`,
+        18000
+      );
+      const obj=data.global_achievement_percentages||{};
+      const map=new Map(Object.entries(obj).map(([k,v])=>[k,Number(v)||0]));
+      achievementSessionCache[cacheKey]=map;
+      return map;
+    }catch(_){
+      return null;
+    }
+  }
+
+  async function resolveSteamId(value,apiKey){
+    const input=String(value||"").trim();
+
+    if(/^\d{17}$/.test(input))return input;
+
+    let url;
+    try{
+      url=new URL(input);
+    }catch{
+      throw new Error("Enter a valid Steam profile URL or 17-digit SteamID64.");
+    }
+
+    const host=url.hostname.toLowerCase();
+    if(host!=="steamcommunity.com"&&host!=="www.steamcommunity.com"){
+      throw new Error("Profile URL must use steamcommunity.com.");
+    }
+
+    const parts=url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    if(parts.length<2){
+      throw new Error("Use a Steam /profiles/STEAMID or /id/NAME URL.");
+    }
+
+    const kind=parts[0].toLowerCase();
+    const ident=parts[1];
+
+    if(kind==="profiles"&&/^\d{17}$/.test(ident))return ident;
+
+    if(kind==="id"&&ident){
+      const data=await steamGet("/ISteamUser/ResolveVanityURL/v1/",{
+        key:apiKey,
+        vanityurl:ident,
+        url_type:1
+      });
+      const r=data?.response||{};
+      if(r.success!==1||!r.steamid){
+        throw new Error(r.message||`Could not resolve Steam vanity URL: ${ident}`);
+      }
+      return String(r.steamid);
+    }
+
+    throw new Error("Unsupported Steam profile URL.");
+  }
+
+  async function getSummaries(ids,apiKey){
+    const data=await steamGet("/ISteamUser/GetPlayerSummaries/v2/",{
+      key:apiKey,
+      steamids:ids.join(",")
+    });
+    const players=data?.response?.players||[];
+    return new Map(players.map(p=>[String(p.steamid),p]));
+  }
+
+  async function getOwnedGames(steamid,apiKey,includeFree){
+    const data=await steamGet("/IPlayerService/GetOwnedGames/v1/",{
+      key:apiKey,
+      steamid,
+      include_appinfo:"true",
+      include_played_free_games:includeFree?"true":"false",
+      format:"json"
+    });
+
+    const r=data?.response||{};
+    const visible=Array.isArray(r.games)||typeof r.game_count==="number";
+    if(!visible)return {visible:false,games:[]};
+
+    const list=(r.games||[]).map(g=>({
+      appid:Number(g.appid)||0,
+      name:String(g.name||`App ${g.appid||""}`),
+      playtime_minutes:Math.max(0,Number(g.playtime_forever)||0)
+    })).filter(g=>g.appid>0);
+
+    return {visible:true,games:list};
+  }
+
+  async function compare(){
+    const profiles=collectProfiles();
+
+    if(profiles.length<2){
+      setStatus("Add at least 2 Steam profiles.",true);
+      return;
+    }
+    if(profiles.some(p=>!p.url)){
+      setStatus("Every profile needs a Steam profile URL.",true);
+      return;
+    }
+
+    $("compareBtn").disabled=true;
+    saveProfileSetup();
+    setProgress(5,"Contacting server");
+    setStatus(`Fetching ${profiles.length} Steam libraries…`);
+
+    try{
+      const res=await fetch("/api/compare",{
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({
+          profiles,
+          include_free:$("includeFree").checked
+        })
+      });
+
+      const data=await res.json().catch(()=>({error:"Server returned an invalid response."}));
+      if(!res.ok)throw new Error(data.error||`Compare failed (HTTP ${res.status}).`);
+
+      libraries=data.profiles||[];
+      setProgress(90,"Building comparison");
+      buildComparison();
+      renderDiscoverPersonSelect();
+      renderAll();
+
+      $("dashboard").classList.remove("hidden");
+      $("nav").classList.remove("hidden");
+      setProgress(100,"Comparison complete");
+      setStatus(`Compared ${libraries.length} libraries successfully.`);
+      $("setupDetails").open=false;
+      updateSetupSummary();
+      setSection("overview");
+
+    }catch(err){
+      setProgress(0,"Comparison stopped");
+      setStatus(err.message||String(err),true);
+      $("setupDetails").open=true;
+    }finally{
+      $("compareBtn").disabled=false;
+    }
+  }
+
+  function buildComparison(){
+    const map=new Map();
+
+    libraries.forEach((person,personIndex)=>{
+      person.games.forEach(g=>{
+        let row=map.get(g.appid);
+
+        if(!row){
+          row={
+            appid:g.appid,
+            name:g.name,
+            owners:[],
+            playtimes:{},
+            total_playtime:0
+          };
+          map.set(g.appid,row);
+        }
+
+        row.owners.push(personIndex);
+        row.playtimes[personIndex]=g.playtime_minutes||0;
+        row.total_playtime+=g.playtime_minutes||0;
+
+        if((g.name||"").length>(row.name||"").length){
+          row.name=g.name;
+        }
+      });
+    });
+
+    games=[...map.values()];
+
+    const validIds=new Set(games.map(g=>String(g.appid)));
+    shortlist=new Set([...shortlist].filter(id=>validIds.has(id)));
+    saveShortlist();
+  }
+
+  function personMetrics(i){
+    const owned=games.filter(g=>g.owners.includes(i));
+    const exclusive=owned.filter(g=>g.owners.length===1);
+    const missing=games.filter(g=>!g.owners.includes(i));
+    return {
+      owned:owned.length,
+      exclusive:exclusive.length,
+      missing:missing.length
+    };
+  }
+
+  function renderOverview(){
+    const n=libraries.length;
+    const exclusive=games.filter(g=>g.owners.length===1).length;
+    const allOwn=games.filter(g=>g.owners.length===n).length;
+
+    $("peopleKpi").textContent=n;
+    $("unionKpi").textContent=games.length;
+    $("allOwnKpi").textContent=allOwn;
+    $("exclusiveKpi").textContent=exclusive;
+
+    $("peopleCards").innerHTML=libraries.map((p,i)=>{
+      const m=personMetrics(i);
+      const nameNote=p.nickname_provided&&p.display_name!==p.steam_username
+        ? `Steam: ${escapeHtml(p.steam_username)}`
+        : `SteamID ${escapeHtml(p.steamid)}`;
+
+      return `<article class="person">
+        <div class="personTop">
+          ${p.avatar?`<img class="avatar" src="${escapeHtml(p.avatar)}" alt="">`:`<div class="avatar"></div>`}
+          <div style="min-width:0">
+            <div class="personName">${escapeHtml(p.display_name)}</div>
+            <div class="steamName">${nameNote}</div>
+          </div>
+        </div>
+        <div class="personStats">
+          <div class="mini"><b>${m.owned}</b><span>Owned</span></div>
+          <div class="mini"><b>${m.exclusive}</b><span>Only them</span></div>
+          <div class="mini"><b>${m.missing}</b><span>New to them</span></div>
+        </div>
+      </article>`;
+    }).join("");
+
+    const metrics=libraries.map((p,i)=>({name:p.display_name,...personMetrics(i)}));
+    const mostMissing=[...metrics].sort((a,b)=>b.missing-a.missing)[0];
+    const mostExclusive=[...metrics].sort((a,b)=>b.exclusive-a.exclusive)[0];
+    const sharedPct=games.length?Math.round(allOwn/games.length*100):0;
+
+    $("decisionInsights").innerHTML=`
+      <div class="insight">
+        <b>${escapeHtml(mostMissing?.name||"—")} could gain the most variety</b>
+        <span>${mostMissing?.missing||0} combined games are missing from that library.</span>
+      </div>
+      <div class="insight">
+        <b>${escapeHtml(mostExclusive?.name||"—")} contributes the most exclusives</b>
+        <span>${mostExclusive?.exclusive||0} games are owned by that person alone.</span>
+      </div>
+      <div class="insight">
+        <b>${sharedPct}% of the union is owned by everyone</b>
+        <span>${allOwn} of ${games.length} combined unique games are present in every compared library.</span>
+      </div>`;
+
+    $("shortCount").textContent=shortlist.size;
+
+    // Best pair by symmetric library difference: useful when comparing 3+ people.
+    let best=null;
+    for(let a=0;a<libraries.length;a++){
+      const setA=new Set(libraries[a].games.map(g=>g.appid));
+      for(let b=a+1;b<libraries.length;b++){
+        const setB=new Set(libraries[b].games.map(g=>g.appid));
+        let onlyA=0,onlyB=0,shared=0;
+        setA.forEach(id=>{if(setB.has(id))shared++;else onlyA++});
+        setB.forEach(id=>{if(!setA.has(id))onlyB++});
+        const complement=onlyA+onlyB;
+        if(!best||complement>best.complement){
+          best={a,b,onlyA,onlyB,shared,complement};
+        }
+      }
+    }
+
+    if(best){
+      $("bestPair").innerHTML=`
+        <div class="pairHero">
+          <b>${escapeHtml(libraries[best.a].display_name)} × ${escapeHtml(libraries[best.b].display_name)}</b>
+          <span>${best.complement} non-overlapping games between them: ${best.onlyA} only from ${escapeHtml(libraries[best.a].display_name)} and ${best.onlyB} only from ${escapeHtml(libraries[best.b].display_name)}. They already share ${best.shared} games.</span>
+        </div>`;
+    }else{
+      $("bestPair").innerHTML=`<div class="empty">Compare at least 2 people.</div>`;
+    }
+
+    const selected=getShortlistedGames();
+    $("shortlistImpact").innerHTML=libraries.map((p,i)=>{
+      const missing=selected.filter(g=>!g.owners.includes(i)).length;
+      const owned=selected.filter(g=>g.owners.includes(i)).length;
+      return `<div class="impactRow"><strong>${escapeHtml(p.display_name)}</strong><span>${missing} starred new · ${owned} already owned</span></div>`;
+    }).join("")||`<div class="empty">No profiles yet.</div>`;
+  }
+
+  function renderPersonChips(){
+    const parts=[
+      `<button class="chip ${personFilter==="all"?"active":""}" type="button" data-person="all">All people</button>`
+    ];
+
+    libraries.forEach((p,i)=>{
+      const missingKey=`missing:${i}`;
+      const ownedKey=`owned:${i}`;
+      parts.push(`<button class="chip ${personFilter===missingKey?"active":""}" type="button" data-person="${missingKey}">Missing for ${escapeHtml(p.display_name)}</button>`);
+      parts.push(`<button class="chip ${personFilter===ownedKey?"active":""}" type="button" data-person="${ownedKey}">Owned by ${escapeHtml(p.display_name)}</button>`);
+    });
+
+    $("personChips").innerHTML=parts.join("");
+
+    $("personChips").querySelectorAll("[data-person]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        personFilter=btn.dataset.person;
+        renderPersonChips();
+        renderGames();
+      });
+    });
+  }
+
+  function renderGames(){
+    const q=$("searchInput").value.trim().toLowerCase();
+    const view=$("viewSelect").value;
+    const sort=$("sortSelect").value;
+    const n=libraries.length;
+
+    let list=games.filter(g=>{
+      if(personFilter!=="all"){
+        const [mode,rawIndex]=personFilter.split(":");
+        const idx=Number(rawIndex);
+        if(mode==="missing"&&g.owners.includes(idx))return false;
+        if(mode==="owned"&&!g.owners.includes(idx))return false;
+      }
+      if(view==="exclusive"&&g.owners.length!==1)return false;
+      if(view==="partial"&&!(g.owners.length>1&&g.owners.length<n))return false;
+      if(view==="everyone"&&g.owners.length!==n)return false;
+      if(q&&!g.name.toLowerCase().includes(q)&&!String(g.appid).includes(q))return false;
+      return true;
+    });
+
+    list.sort((a,b)=>{
+      if(sort==="name_desc")return b.name.localeCompare(a.name);
+      if(sort==="owners_asc")return a.owners.length-b.owners.length||a.name.localeCompare(b.name);
+      if(sort==="owners_desc")return b.owners.length-a.owners.length||a.name.localeCompare(b.name);
+      if(sort==="play_desc")return b.total_playtime-a.total_playtime||a.name.localeCompare(b.name);
+      if(sort==="play_asc")return a.total_playtime-b.total_playtime||a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name);
+    });
+
+    const labels={
+      all:"All games",
+      exclusive:"Owned by exactly one",
+      partial:"Shared by some",
+      everyone:"Owned by everyone"
+    };
+
+    let title=labels[view];
+
+    if(personFilter!=="all"){
+      const [mode,rawIndex]=personFilter.split(":");
+      const personName=libraries[Number(rawIndex)]?.display_name||"";
+      title+=mode==="owned" ? ` · owned by ${personName}` : ` · missing for ${personName}`;
+    }
+
+    currentVisibleGames=[...list];
+    $("gameViewTitle").textContent=title;
+    $("gameCount").textContent=`${list.length} result${list.length===1?"":"s"}`;
+
+    if(!list.length){
+      $("gameList").innerHTML=`<div class="empty">No games match these filters.</div>`;
+      return;
+    }
+
+    $("gameList").innerHTML=list.map(g=>{
+      const ownerNames=g.owners.map(i=>libraries[i].display_name);
+      const on=shortlist.has(String(g.appid));
+
+      const enrich=enrichmentFor(g.appid);
+      return `<article class="game">
+        <div class="gameThumbWrap">${gameImageHtml(g.appid,g.name,"gameThumb",true)}</div>
+        <div>
+          <div class="gameName">${escapeHtml(g.name)}</div>
+          <div class="meta">
+            <span class="badge">${g.owners.length}/${n} owners</span>
+            ${ratingHtml(enrich)}
+            <span>App ${g.appid}</span>
+            <span>${fmtHours(g.total_playtime)} total</span>
+          </div>
+          <div class="owners">Owned by: ${ownerNames.map(escapeHtml).join(", ")}</div>
+        </div>
+        <div class="gameActions">
+          <button class="star ${on?"on":""}" type="button" data-star="${g.appid}" aria-label="${on?"Remove from":"Add to"} shortlist">${on?"★":"☆"}</button>
+          <button class="detailsBtn" type="button" data-open-game="${g.appid}">Details</button>
+          <a class="storeLink" href="https://store.steampowered.com/app/${g.appid}/" target="_blank" rel="noopener">Store ↗</a>
+        </div>
+      </article>`;
+    }).join("");
+
+    $("gameList").querySelectorAll("[data-star]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        toggleStar(String(btn.dataset.star));
+      });
+    });
+    attachGameOpenHandlers($("gameList"));
+  }
+
+  function toggleStar(appid){
+    if(shortlist.has(appid)){
+      shortlist.delete(appid);
+      toast("Removed from shortlist");
+    }else{
+      shortlist.add(appid);
+      toast("Added to shortlist");
+    }
+
+    saveShortlist();
+    renderOverview();
+    renderGames();
+    renderShortlist();
+    renderDiscoverPersonSelect();
+    renderDiscover();
+    renderInsights();
+  }
+
+  function getShortlistedGames(){
+    return games.filter(g=>shortlist.has(String(g.appid)));
+  }
+
+  function sortShortList(list){
+    const mode=$("shortSortSelect").value;
+
+    return [...list].sort((a,b)=>{
+      if(mode==="name_desc")return b.name.localeCompare(a.name);
+      if(mode==="play_desc")return b.total_playtime-a.total_playtime||a.name.localeCompare(b.name);
+      if(mode==="play_asc")return a.total_playtime-b.total_playtime||a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  function renderShortlist(){
+    const q=$("shortSearchInput").value.trim().toLowerCase();
+    const selected=getShortlistedGames();
+
+    if(!libraries.length){
+      $("shortGroups").innerHTML=`<div class="empty">Run a comparison first.</div>`;
+      return;
+    }
+
+    let libraryEntryCount=0;
+    const groups=[];
+
+    libraries.forEach((person,personIndex)=>{
+      let owned=selected.filter(g=>g.owners.includes(personIndex));
+
+      if(q){
+        owned=owned.filter(g=>g.name.toLowerCase().includes(q)||String(g.appid).includes(q));
+      }
+
+      owned=sortShortList(owned);
+      libraryEntryCount+=owned.length;
+
+      groups.push({
+        person,
+        personIndex,
+        games:owned
+      });
+    });
+
+    $("shortlistSummary").innerHTML=`
+      <b>${selected.length} unique starred game${selected.length===1?"":"s"}</b>
+      <span>${libraryEntryCount} visible library entr${libraryEntryCount===1?"y":"ies"}</span>`;
+
+    if(!selected.length){
+      $("shortGroups").innerHTML=`
+        <div class="empty">No starred games yet. Open Games and tap ☆ on anything you want to shortlist.</div>`;
+      return;
+    }
+
+    $("shortGroups").innerHTML=groups.map(group=>{
+      const p=group.person;
+      const list=group.games;
+
+      const inner=list.length
+        ? list.map(g=>{
+            const on=shortlist.has(String(g.appid));
+            const otherOwners=g.owners
+              .filter(i=>i!==group.personIndex)
+              .map(i=>libraries[i].display_name);
+
+            const sourceText=otherOwners.length
+              ? `Also owned by: ${otherOwners.map(escapeHtml).join(", ")}`
+              : `Exclusive to ${escapeHtml(p.display_name)} among compared libraries`;
+
+            const thisPlay=g.playtimes[group.personIndex]||0;
+
+            const enrich=enrichmentFor(g.appid);
+            return `<article class="shortGame">
+              ${gameImageHtml(g.appid,g.name,"shortThumb",true)}
+              <div>
+                <div class="gameName">${escapeHtml(g.name)}</div>
+                <div class="meta">
+                  ${ratingHtml(enrich)}
+                  <span>App ${g.appid}</span>
+                  <span>${fmtHours(thisPlay)} in ${escapeHtml(p.display_name)}'s library</span>
+                </div>
+                <div class="sourceNote">${sourceText}</div>
+              </div>
+              <div class="gameActions">
+                <button class="star ${on?"on":""}" type="button" data-short-star="${g.appid}" aria-label="Remove from shortlist">★</button>
+                <button class="detailsBtn" type="button" data-open-game="${g.appid}">Details</button>
+                <a class="storeLink" href="https://store.steampowered.com/app/${g.appid}/" target="_blank" rel="noopener">Store ↗</a>
+              </div>
+            </article>`;
+          }).join("")
+        : `<div class="empty">No shortlisted games from this library${q?" match the search":""}.</div>`;
+
+      return `<section class="libraryGroup">
+        <div class="libraryGroupHead">
+          <div class="libraryIdentity">
+            ${p.avatar?`<img class="libraryAvatar" src="${escapeHtml(p.avatar)}" alt="">`:`<div class="libraryAvatar"></div>`}
+            <div class="libraryTitle">
+              <strong>From ${escapeHtml(p.display_name)}'s library</strong>
+              <span>${p.nickname_provided?`Steam: ${escapeHtml(p.steam_username)}`:`Steam profile`}</span>
+            </div>
+          </div>
+          <div class="groupCount">${list.length} game${list.length===1?"":"s"}</div>
+        </div>
+        <div class="groupGames">${inner}</div>
+      </section>`;
+    }).join("");
+
+    $("shortGroups").querySelectorAll("[data-short-star]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        toggleStar(String(btn.dataset.shortStar));
+      });
+    });
+    attachGameOpenHandlers($("shortGroups"));
+  }
+
+
+  function csvEscape(value){
+    return `"${String(value??"").replaceAll('"','""')}"`;
+  }
+
+  function exportCurrentViewCsv(){
+    if(!currentVisibleGames.length){
+      toast("No filtered games to export");
+      return;
+    }
+
+    const rows=[
+      ["appid","game","owner_count","owners","total_playtime_minutes","shortlisted"],
+      ...currentVisibleGames.map(g=>[
+        g.appid,
+        g.name,
+        g.owners.length,
+        g.owners.map(i=>libraries[i].display_name).join(" | "),
+        g.total_playtime,
+        shortlist.has(String(g.appid))?"yes":"no"
+      ])
+    ];
+
+    const csv=rows.map(row=>row.map(csvEscape).join(",")).join("\n");
+    const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="steam-family-filtered-games.csv";
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),500);
+    toast("Filtered CSV exported");
+  }
+
+  function clearShortlist(){
+    if(!shortlist.size){
+      toast("Shortlist is already empty");
+      return;
+    }
+
+    if(!window.confirm(`Clear all ${shortlist.size} starred games?`))return;
+
+    shortlist.clear();
+    saveShortlist();
+    renderOverview();
+    renderGames();
+    renderShortlist();
+    renderDiscover();
+    renderInsights();
+    toast("Shortlist cleared");
+  }
+
+
+  function renderDiscoverPersonSelect(){
+    const select=$("discoverPersonSelect");
+    const old=select.value;
+    select.innerHTML=libraries.map((p,i)=>`<option value="${i}">Discover for ${escapeHtml(p.display_name)}</option>`).join("");
+    if(old&&libraries[Number(old)])select.value=old;
+  }
+
+  function setEnrichProgress(done,total,label){
+    const pct=total?Math.round((done/total)*100):0;
+    $("enrichProgressFill").style.width=`${pct}%`;
+    $("enrichProgressPct").textContent=`${pct}%`;
+    $("enrichProgressLabel").textContent=label||`${done}/${total} enriched`;
+  }
+
+  function quickCandidateGames(personIndex){
+    const missing=games
+      .filter(g=>!g.owners.includes(personIndex))
+      .sort((a,b)=>{
+        const aShort=shortlist.has(String(a.appid))?1:0;
+        const bShort=shortlist.has(String(b.appid))?1:0;
+        if(bShort!==aShort)return bShort-aShort;
+        return b.total_playtime-a.total_playtime;
+      });
+
+    const ownedBacklog=games
+      .filter(g=>g.owners.includes(personIndex)&&(g.playtimes[personIndex]||0)<=30)
+      .sort((a,b)=>b.total_playtime-a.total_playtime);
+
+    const selected=[];
+    const seen=new Set();
+    for(const g of [...missing.slice(0,32),...ownedBacklog.slice(0,12),...getShortlistedGames()]){
+      if(!seen.has(g.appid)){
+        seen.add(g.appid);
+        selected.push(g);
+      }
+      if(selected.length>=45)break;
+    }
+    return selected;
+  }
+
+  async function enrichGameList(list){
+    if(!list.length){
+      toast("No games to analyze");
+      return;
+    }
+
+    enrichmentStop=false;
+    $("quickAnalyzeBtn").disabled=true;
+    $("analyzeAllBtn").disabled=true;
+    $("stopAnalyzeBtn").classList.remove("hidden");
+
+    let cursor=0;
+    let done=0;
+    let usable=0;
+    let networkFailures=0;
+    setEnrichProgress(0,list.length,"Starting enrichment…");
+
+    async function worker(){
+      while(cursor<list.length&&!enrichmentStop){
+        const g=list[cursor++];
+        try{
+          const e=await getGameEnrichment(g.appid);
+          if(e?.store||e?.reviews)usable++;
+          if(e?.errors?.length===2)networkFailures++;
+        }catch(_){
+          networkFailures++;
+        }
+        done++;
+        setEnrichProgress(done,list.length,`Analyzing ${done}/${list.length}`);
+        if(done%4===0)renderDiscover();
+
+        // If the first several calls all fail, stop rather than firing hundreds of doomed requests.
+        if(done>=6&&usable===0&&networkFailures>=6){
+          enrichmentStop=true;
+          break;
+        }
+      }
+    }
+
+    await Promise.all([worker(),worker(),worker()]);
+
+    $("quickAnalyzeBtn").disabled=false;
+    $("analyzeAllBtn").disabled=false;
+    $("stopAnalyzeBtn").classList.add("hidden");
+
+    if(usable===0&&done>0){
+      setEnrichProgress(0,list.length,"Store/review data blocked or unavailable");
+      $("discoverSummary").innerHTML=`<b>Enrichment could not load.</b><span>The Steam Store metadata/review endpoints appear to be blocked by browser CORS or unavailable from this page. Ownership, playtime, artwork and Steam Web API features can still work.</span>`;
+    }else if(enrichmentStop&&done<list.length){
+      setEnrichProgress(done,list.length,`Stopped · ${usable} games enriched`);
+    }else{
+      setEnrichProgress(done,list.length,`${usable} games enriched`);
+    }
+    renderDiscover();
+  }
+
+  function discoverCandidates(personIndex){
+    const enriched=games.filter(g=>{
+      const e=enrichmentFor(g.appid);
+      return e&&(e.store||e.reviews);
+    });
+
+    const missing=enriched.filter(g=>!g.owners.includes(personIndex));
+    const owned=enriched.filter(g=>g.owners.includes(personIndex));
+
+    if(discoverMode==="best"){
+      return missing
+        .map(g=>({g,e:enrichmentFor(g.appid),score:recommendationScore(g,enrichmentFor(g.appid),personIndex)}))
+        .sort((a,b)=>b.score-a.score)
+        .slice(0,30);
+    }
+
+    if(discoverMode==="coop"){
+      return missing
+        .filter(g=>isCoop(enrichmentFor(g.appid)))
+        .map(g=>({g,e:enrichmentFor(g.appid),score:recommendationScore(g,enrichmentFor(g.appid),personIndex)}))
+        .sort((a,b)=>b.score-a.score)
+        .slice(0,30);
+    }
+
+    if(discoverMode==="hidden"){
+      return missing
+        .filter(g=>{
+          const r=enrichmentFor(g.appid)?.reviews;
+          return r&&r.positive_percent>=85&&r.total_reviews>=50&&r.total_reviews<=30000;
+        })
+        .map(g=>({g,e:enrichmentFor(g.appid),score:recommendationScore(g,enrichmentFor(g.appid),personIndex)}))
+        .sort((a,b)=>b.score-a.score)
+        .slice(0,30);
+    }
+
+    if(discoverMode==="rated"){
+      return missing
+        .filter(g=>(enrichmentFor(g.appid)?.reviews?.total_reviews||0)>=20)
+        .map(g=>({g,e:enrichmentFor(g.appid),score:enrichmentFor(g.appid)?.reviews?.positive_percent??0}))
+        .sort((a,b)=>b.score-a.score||(b.e?.reviews?.total_reviews||0)-(a.e?.reviews?.total_reviews||0))
+        .slice(0,30);
+    }
+
+    if(discoverMode==="backlog"){
+      return owned
+        .filter(g=>{
+          const r=enrichmentFor(g.appid)?.reviews;
+          const ownPlay=g.playtimes[personIndex]||0;
+          return ownPlay<=30&&r&&r.positive_percent>=80&&r.total_reviews>=20;
+        })
+        .map(g=>({g,e:enrichmentFor(g.appid),score:enrichmentFor(g.appid)?.reviews?.positive_percent??0}))
+        .sort((a,b)=>b.score-a.score||b.g.total_playtime-a.g.total_playtime)
+        .slice(0,30);
+    }
+
+    return [];
+  }
+
+  function renderDiscover(){
+    if(!libraries.length)return;
+    renderDiscoverPersonSelect();
+
+    const personIndex=Number($("discoverPersonSelect").value||0);
+    const enrichedCount=games.filter(g=>enrichmentFor(g.appid)?.store||enrichmentFor(g.appid)?.reviews).length;
+    const person=libraries[personIndex];
+
+    document.querySelectorAll("[data-discover]").forEach(b=>b.classList.toggle("active",b.dataset.discover===discoverMode));
+
+    if(discoverMode==="genres"){
+      const counts=new Map();
+      games
+        .filter(g=>!g.owners.includes(personIndex))
+        .forEach(g=>{
+          const genres=enrichmentFor(g.appid)?.store?.genres||[];
+          genres.forEach(name=>counts.set(name,(counts.get(name)||0)+1));
+        });
+      const rows=[...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,14);
+      const max=Math.max(1,...rows.map(x=>x[1]));
+      $("discoverSummary").innerHTML=`<b>${escapeHtml(person.display_name)}'s missing-game genre mix</b><span>Based on ${enrichedCount} enriched games. Analyze more games for a more complete taste map.</span>`;
+      $("discoverList").innerHTML=rows.length?`<div class="card" style="grid-column:1/-1"><div class="genreBars">${rows.map(([name,count])=>`
+        <div class="genreRow"><div class="genreName">${escapeHtml(name)}</div><div class="genreValue">${count} games</div><div class="genreTrack"><div class="genreFill" style="width:${Math.max(3,(count/max)*100)}%"></div></div></div>`).join("")}</div></div>`:`<div class="empty">Analyze games first to build a genre profile.</div>`;
+      return;
+    }
+
+    const list=discoverCandidates(personIndex);
+    const labels={
+      best:"Best games they could gain",
+      coop:"Best co-op / multiplayer gains",
+      hidden:"Highly rated hidden gems",
+      rated:"Highest-rated missing games",
+      backlog:"Great games already owned but barely played"
+    };
+    $("discoverSummary").innerHTML=`<b>${escapeHtml(labels[discoverMode]||"Discover")}: ${escapeHtml(person.display_name)}</b><span>${enrichedCount}/${games.length} combined games currently have cached Store/review enrichment.</span>`;
+
+    if(!list.length){
+      $("discoverList").innerHTML=`<div class="empty">No matching enriched games yet. Tap Quick analyze or Analyze all.</div>`;
+      return;
+    }
+
+    $("discoverList").innerHTML=list.map(({g,e,score})=>{
+      const r=e?.reviews;
+      const genres=e?.store?.genres||[];
+      const cats=e?.store?.categories||[];
+      const ownerNames=g.owners.map(i=>libraries[i].display_name);
+      const on=shortlist.has(String(g.appid));
+      return `<article class="discoverCard">
+        ${gameImageHtml(g.appid,g.name,"discoverThumb",true)}
+        <div>
+          <div class="discoverTitle">${escapeHtml(g.name)}</div>
+          <div class="meta">
+            ${ratingHtml(e)}
+            ${genres.slice(0,2).map(x=>`<span class="badge">${escapeHtml(x)}</span>`).join("")}
+            ${isCoop(e)?`<span class="badge">Co-op / MP</span>`:""}
+          </div>
+          <div class="owners">Owned by: ${ownerNames.map(escapeHtml).join(", ")} · ${fmtHours(g.total_playtime)} group playtime</div>
+          <div class="actions">
+            <button class="star ${on?"on":""}" type="button" data-discover-star="${g.appid}">${on?"★":"☆"}</button>
+            <button class="detailsBtn" type="button" data-open-game="${g.appid}">Details</button>
+            <a class="storeLink" href="https://store.steampowered.com/app/${g.appid}/" target="_blank" rel="noopener">Store ↗</a>
+          </div>
+        </div>
+        <div class="discoverScore">${discoverMode==="rated"||discoverMode==="backlog"?`${score}%`:`${score}`}</div>
+      </article>`;
+    }).join("");
+
+    $("discoverList").querySelectorAll("[data-discover-star]").forEach(btn=>btn.addEventListener("click",()=>toggleStar(String(btn.dataset.discoverStar))));
+    attachGameOpenHandlers($("discoverList"));
+  }
+
+  function rankRows(rows){
+    if(!rows.length)return `<div class="empty">No data yet.</div>`;
+
+    return rows.map((r,i)=>`
+      <div class="rankRow">
+        <strong>${i+1}. ${escapeHtml(r.name)}</strong>
+        <span>${escapeHtml(r.value)}</span>
+      </div>`).join("");
+  }
+
+
+  function truncateReview(text,max=420){
+    const s=String(text||"").trim();
+    return s.length>max?s.slice(0,max-1)+"…":s;
+  }
+
+  function storeMetaHtml(e){
+    const s=e?.store;
+    if(!s)return `<div class="dialogLoading">Steam Store metadata is unavailable for this game.</div>`;
+    const platformNames=Object.entries(s.platforms||{}).filter(([,v])=>v).map(([k])=>k);
+    return `
+      <div class="detailSection">
+        <h3>About</h3>
+        <div class="tagWrap">
+          ${(s.genres||[]).map(x=>`<span class="tag">${escapeHtml(x)}</span>`).join("")}
+          ${(s.categories||[]).slice(0,10).map(x=>`<span class="tag">${escapeHtml(x)}</span>`).join("")}
+        </div>
+        <div class="metaLine">
+          ${s.release_date?`Released: ${escapeHtml(s.release_date)} · `:""}
+          ${s.developers?.length?`Developer: ${escapeHtml(s.developers.join(", "))} · `:""}
+          ${s.publishers?.length?`Publisher: ${escapeHtml(s.publishers.join(", "))} · `:""}
+          ${platformNames.length?`Platforms: ${escapeHtml(platformNames.join(", "))}`:""}
+        </div>
+        ${s.short_description?`<div class="metaLine">${escapeHtml(s.short_description)}</div>`:""}
+      </div>`;
+  }
+
+  async function openGameDetails(appid){
+    const g=games.find(x=>x.appid===Number(appid));
+    if(!g)return;
+
+    const dialog=$("gameDialog");
+    $("dialogTitle").textContent=g.name;
+    $("dialogImage").src=gameImageUrl(g.appid);
+    $("dialogImage").alt=`${g.name} artwork`;
+    $("dialogImage").onerror=()=>{
+      if(!$("dialogImage").dataset.fallback){
+        $("dialogImage").dataset.fallback="1";
+        $("dialogImage").src=gameImageFallbackUrl(g.appid);
+      }
+    };
+    $("dialogImage").dataset.fallback="";
+    $("dialogSubtitle").textContent=`Owned by ${g.owners.map(i=>libraries[i].display_name).join(", ")} · App ${g.appid}`;
+    $("dialogBody").innerHTML=`<div class="dialogLoading">Loading Steam metadata, reviews, current players and achievements…</div>`;
+
+    if(typeof dialog.showModal==="function"){
+      if(!dialog.open)dialog.showModal();
+    }else{
+      dialog.setAttribute("open","");
+    }
+
+    let e;
+    try{
+      e=await getGameEnrichment(g.appid);
+    }catch(_){
+      e=enrichmentFor(g.appid);
+    }
+
+    const currentPlayersPromise=getCurrentPlayers(g.appid);
+    const globalAchievementsPromise=getGlobalAchievementPercentages(g.appid);
+    const achievementPromises=g.owners.map(async i=>({
+      i,
+      data:await getPlayerAchievementsForGame(libraries[i].steamid,g.appid)
+    }));
+
+    const currentPlayers=await currentPlayersPromise;
+    const globalAchievementMap=await globalAchievementsPromise;
+    const achievementResults=await Promise.all(achievementPromises);
+
+    const r=e?.reviews;
+    const rating=r?.positive_percent;
+    const mc=e?.store?.metacritic;
+
+    const ownerRows=g.owners.map(i=>`
+      <div class="achievementRow">
+        <b>${escapeHtml(libraries[i].display_name)}</b>
+        <span>${fmtHours(g.playtimes[i]||0)} played</span>
+      </div>`).join("");
+
+    const achievementRows=achievementResults.map(({i,data})=>{
+      if(!data)return `<div class="achievementRow"><b>${escapeHtml(libraries[i].display_name)}</b><span>Achievements unavailable</span></div>`;
+      let rare="";
+      if(globalAchievementMap){
+        const unlocked=data.achievements
+          .filter(a=>Number(a.achieved)===1)
+          .map(a=>({name:a.name,percent:globalAchievementMap.get(a.apiname)}))
+          .filter(x=>Number.isFinite(x.percent))
+          .sort((a,b)=>a.percent-b.percent)[0];
+        if(unlocked)rare=` · rarest unlocked ${unlocked.percent.toFixed(1)}%`;
+      }
+      return `<div class="achievementRow"><b>${escapeHtml(libraries[i].display_name)}</b><span>${data.unlocked}/${data.total} (${data.total?Math.round(data.unlocked/data.total*100):0}%)${escapeHtml(rare)}</span></div>`;
+    }).join("");
+
+    const reviewsHtml=(r?.reviews||[]).length
+      ? (r.reviews||[]).map(rv=>`
+          <div class="reviewCard">
+            <div class="reviewTop"><span>${rv.voted_up?"👍 Recommended":"👎 Not recommended"} · ${fmtHours(rv.playtime_minutes)} reviewer playtime</span><span>${rv.votes_up} helpful</span></div>
+            <p>${escapeHtml(truncateReview(rv.review))}</p>
+            ${rv.developer_response?`<div class="metaLine"><b>Developer response:</b> ${escapeHtml(truncateReview(rv.developer_response,260))}</div>`:""}
+          </div>`).join("")
+      : `<div class="dialogLoading">No representative review comments loaded.</div>`;
+
+    $("dialogBody").innerHTML=`
+      <div class="detailKpis">
+        <div class="detailKpi"><b>${rating===null||rating===undefined?"—":rating+"%"}</b><span>${escapeHtml(r?.score_desc||"Steam reviews")}</span></div>
+        <div class="detailKpi"><b>${r?.total_reviews?Number(r.total_reviews).toLocaleString():"—"}</b><span>Steam reviews</span></div>
+        <div class="detailKpi"><b>${currentPlayers===null?"—":Number(currentPlayers).toLocaleString()}</b><span>Players online now</span></div>
+        <div class="detailKpi"><b>${mc??"—"}</b><span>Metacritic</span></div>
+      </div>
+
+      ${storeMetaHtml(e)}
+
+      <div class="detailSection">
+        <h3>Compared-library playtime</h3>
+        ${ownerRows}
+      </div>
+
+      <div class="detailSection">
+        <h3>Achievement progress</h3>
+        ${achievementRows||`<div class="dialogLoading">Achievements unavailable.</div>`}
+      </div>
+
+      <div class="detailSection">
+        <h3>Representative Steam reviews</h3>
+        ${reviewsHtml}
+      </div>
+
+      <div class="actions">
+        <button class="btn ${shortlist.has(String(g.appid))?"primary":""}" id="dialogStarBtn" type="button">${shortlist.has(String(g.appid))?"★ Shortlisted":"☆ Add to shortlist"}</button>
+        <a class="storeLink" style="min-height:44px;padding:10px 13px" href="https://store.steampowered.com/app/${g.appid}/" target="_blank" rel="noopener">Open Steam Store ↗</a>
+      </div>`;
+
+    $("dialogStarBtn").addEventListener("click",()=>{
+      toggleStar(String(g.appid));
+      $("dialogStarBtn").textContent=shortlist.has(String(g.appid))?"★ Shortlisted":"☆ Add to shortlist";
+      $("dialogStarBtn").classList.toggle("primary",shortlist.has(String(g.appid)));
+    });
+
+    renderDiscover();
+  }
+
+  function renderInsights(){
+    const metrics=libraries.map((p,i)=>({
+      name:p.display_name,
+      ...personMetrics(i)
+    }));
+
+    $("exclusiveRank").innerHTML=rankRows(
+      [...metrics].sort((a,b)=>b.exclusive-a.exclusive)
+        .map(x=>({name:x.name,value:`${x.exclusive} exclusive`}))
+    );
+
+    $("missingRank").innerHTML=rankRows(
+      [...metrics].sort((a,b)=>b.missing-a.missing)
+        .map(x=>({name:x.name,value:`${x.missing} new`}))
+    );
+
+    const shortGames=getShortlistedGames()
+      .sort((a,b)=>b.total_playtime-a.total_playtime)
+      .slice(0,12);
+
+    $("shortRank").innerHTML=rankRows(
+      shortGames.map(g=>({name:g.name,value:fmtHours(g.total_playtime)}))
+    );
+  }
+
+  function renderAll(){
+    renderOverview();
+    renderPersonChips();
+    renderGames();
+    renderShortlist();
+    renderInsights();
+  }
+
+  function setSection(name){
+    document.querySelectorAll(".section").forEach(section=>{
+      section.classList.toggle("active",section.dataset.section===name);
+    });
+
+    document.querySelectorAll(".nav").forEach(btn=>{
+      btn.classList.toggle("active",btn.dataset.nav===name);
+    });
+
+    window.scrollTo({top:0,behavior:"smooth"});
+
+    if(name==="games")renderGames();
+    if(name==="shortlist")renderShortlist();
+    if(name==="discover")renderDiscover();
+    if(name==="insights")renderInsights();
+  }
+
+  function fitCanvasText(ctx,text,maxWidth,font){
+    ctx.font=font;
+
+    if(ctx.measureText(text).width<=maxWidth){
+      return text;
+    }
+
+    let s=text;
+
+    while(s.length>1&&ctx.measureText(s+"…").width>maxWidth){
+      s=s.slice(0,-1);
+    }
+
+    return s+"…";
+  }
+
+  function exportShortlistPicture(){
+    const selected=getShortlistedGames();
+
+    if(!selected.length){
+      toast("Shortlist is empty");
+      return;
+    }
+
+    const groups=libraries.map((person,personIndex)=>({
+      person,
+      personIndex,
+      games:sortShortList(selected.filter(g=>g.owners.includes(personIndex)))
+    })).filter(g=>g.games.length);
+
+    const totalEntries=groups.reduce((sum,g)=>sum+g.games.length,0);
+
+    if(totalEntries>300){
+      toast("Too many library entries for one PNG");
+      return;
+    }
+
+    const W=1080;
+    const PAD=64;
+    const HEADER=190;
+    const GROUP_HEAD=58;
+    const ROW=62;
+    const GAP=18;
+    const FOOTER=88;
+
+    const H=Math.max(
+      720,
+      HEADER+
+      groups.length*(GROUP_HEAD+GAP)+
+      totalEntries*ROW+
+      FOOTER+
+      PAD
+    );
+
+    const canvas=document.createElement("canvas");
+    canvas.width=W;
+    canvas.height=H;
+
+    const ctx=canvas.getContext("2d");
+
+    if(!ctx){
+      toast("Image export unavailable");
+      return;
+    }
+
+    ctx.fillStyle="#0b1118";
+    ctx.fillRect(0,0,W,H);
+
+    const grad=ctx.createLinearGradient(0,0,W,0);
+    grad.addColorStop(0,"#143149");
+    grad.addColorStop(1,"#13202b");
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,0,W,HEADER);
+
+    ctx.textBaseline="top";
+
+    ctx.fillStyle="#66c0f4";
+    ctx.font="700 23px system-ui";
+    ctx.fillText("STEAM FAMILY SHORTLIST",PAD,44);
+
+    ctx.fillStyle="#eff6fa";
+    ctx.font="800 46px system-ui";
+    ctx.fillText(`${selected.length} unique starred game${selected.length===1?"":"s"}`,PAD,80);
+
+    ctx.fillStyle="#94a8b6";
+    ctx.font="400 18px system-ui";
+    ctx.fillText("Grouped by source library",PAD,139);
+
+    let y=HEADER+24;
+
+    groups.forEach(group=>{
+      ctx.fillStyle="#182532";
+      ctx.fillRect(PAD,y,W-PAD*2,42);
+
+      ctx.fillStyle="#eff6fa";
+      ctx.font="700 21px system-ui";
+      ctx.fillText(
+        fitCanvasText(ctx,`From ${group.person.display_name}'s library · ${group.games.length}`,W-PAD*2-30,"700 21px system-ui"),
+        PAD+15,
+        y+9
+      );
+
+      y+=GROUP_HEAD;
+
+      group.games.forEach((g,index)=>{
+        if(index%2===0){
+          ctx.fillStyle="#101922";
+          ctx.fillRect(PAD,y-4,W-PAD*2,ROW-5);
+        }
+
+        ctx.fillStyle="#eff6fa";
+        ctx.font="700 22px system-ui";
+        ctx.fillText(
+          fitCanvasText(ctx,g.name,640,"700 22px system-ui"),
+          PAD+14,
+          y+7
+        );
+
+        const otherOwners=g.owners
+          .filter(i=>i!==group.personIndex)
+          .map(i=>libraries[i].display_name);
+
+        const sourceNote=otherOwners.length
+          ? `Also: ${otherOwners.join(", ")}`
+          : `Exclusive to ${group.person.display_name}`;
+
+        ctx.fillStyle="#94a8b6";
+        ctx.font="400 15px system-ui";
+        ctx.fillText(
+          fitCanvasText(ctx,sourceNote,620,"400 15px system-ui"),
+          PAD+14,
+          y+37
+        );
+
+        const thisPlay=g.playtimes[group.personIndex]||0;
+        ctx.textAlign="right";
+        ctx.fillText(fmtHours(thisPlay),W-PAD-14,y+22);
+        ctx.textAlign="left";
+
+        y+=ROW;
+      });
+
+      y+=GAP;
+    });
+
+    ctx.strokeStyle="#293a48";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(PAD,H-FOOTER);
+    ctx.lineTo(W-PAD,H-FOOTER);
+    ctx.stroke();
+
+    ctx.fillStyle="#94a8b6";
+    ctx.font="400 16px system-ui";
+    ctx.fillText(
+      "A shared starred game can appear under more than one source library.",
+      PAD,
+      H-FOOTER+26
+    );
+
+    const link=document.createElement("a");
+    link.download="steam-family-shortlist-by-library.png";
+    link.href=canvas.toDataURL("image/png");
+    link.click();
+
+    toast("Shortlist picture exported");
+  }
+
+  $("addProfileBtn").addEventListener("click",()=>addProfile());
+  $("compareBtn").addEventListener("click",compare);
+  $("includeFree").addEventListener("change",saveProfileSetup);
+  $("exportViewCsvBtn").addEventListener("click",exportCurrentViewCsv);
+  $("clearShortlistBtn").addEventListener("click",clearShortlist);
+
+  $("searchInput").addEventListener("input",renderGames);
+  $("viewSelect").addEventListener("change",renderGames);
+  $("sortSelect").addEventListener("change",renderGames);
+
+  $("discoverPersonSelect").addEventListener("change",renderDiscover);
+  $("quickAnalyzeBtn").addEventListener("click",()=>{
+    const idx=Number($("discoverPersonSelect").value||0);
+    enrichGameList(quickCandidateGames(idx));
+  });
+  $("analyzeAllBtn").addEventListener("click",()=>enrichGameList([...games].sort((a,b)=>b.total_playtime-a.total_playtime)));
+  $("stopAnalyzeBtn").addEventListener("click",()=>{enrichmentStop=true;toast("Stopping analysis…")});
+  $("discoverChips").querySelectorAll("[data-discover]").forEach(btn=>btn.addEventListener("click",()=>{
+    discoverMode=btn.dataset.discover;
+    renderDiscover();
+  }));
+
+  $("shortSearchInput").addEventListener("input",renderShortlist);
+  $("shortSortSelect").addEventListener("change",renderShortlist);
+
+  $("viewShortBtn").addEventListener("click",()=>setSection("shortlist"));
+  $("exportOverviewPicBtn").addEventListener("click",exportShortlistPicture);
+  $("exportShortlistPicBtn").addEventListener("click",exportShortlistPicture);
+  $("dialogCloseBtn").addEventListener("click",()=>$("gameDialog").close());
+  $("gameDialog").addEventListener("click",e=>{
+    if(e.target===$("gameDialog"))$("gameDialog").close();
+  });
+
+
+  document.querySelectorAll(".nav").forEach(btn=>{
+    btn.addEventListener("click",()=>setSection(btn.dataset.nav));
+  });
+
+  if(!restoreProfileSetup()){
+    addProfile("","Sin",false);
+    addProfile("","Folk",false);
+    saveProfileSetup();
+  }
+  setProgress(0,"Waiting");
+  updateSetupSummary();
+})();
+</script>
+</body>
+</html>
