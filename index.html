@@ -125,7 +125,7 @@ h1{font-size:clamp(27px,8vw,44px);line-height:1.03;letter-spacing:-.04em;margin:
   .app{padding:28px 24px 100px}
   .kpis{grid-template-columns:repeat(4,1fr)}
   .twoCol{grid-template-columns:1.08fr .92fr}
-  .controls{grid-template-columns:minmax(0,1fr) 190px}
+  .controls{grid-template-columns:minmax(0,1fr) 180px 190px}
   .games{grid-template-columns:repeat(2,minmax(0,1fr))}
   .bottomNav{border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0}
 }
@@ -182,7 +182,7 @@ h1{font-size:clamp(27px,8vw,44px);line-height:1.03;letter-spacing:-.04em;margin:
 
       <div class="card">
         <div class="shortlistBanner">
-          <div><strong><span id="shortCount">0</span> games shortlisted</strong><p>Star Folk-only games Sin actually wants to play.</p></div>
+          <div><strong><span id="shortCount">0</span> games shortlisted</strong><p>Star any game that matters to Sin or Folk.</p></div>
           <button class="btn" type="button" id="viewShortBtn">View</button>
         </div>
         <div class="insightList" id="insightList"></div>
@@ -195,10 +195,19 @@ h1{font-size:clamp(27px,8vw,44px);line-height:1.03;letter-spacing:-.04em;margin:
     <div class="panel">
       <div class="controls">
         <div class="search"><input id="searchInput" type="search" inputmode="search" placeholder="Search games or App ID…"></div>
+        <select id="playFilterSelect" class="select" aria-label="Filter by playtime">
+          <option value="all">Playtime: All</option>
+          <option value="played">Playtime: Played</option>
+          <option value="unplayed">Playtime: Unplayed</option>
+        </select>
         <select id="sortSelect" class="select" aria-label="Sort games">
-          <option value="name">Sort: A–Z</option>
+          <option value="name_asc">Sort: A–Z</option>
+          <option value="name_desc">Sort: Z–A</option>
           <option value="play_desc">Sort: Most played</option>
           <option value="play_asc">Sort: Least played</option>
+          <option value="appid_asc">Sort: App ID ↑</option>
+          <option value="appid_desc">Sort: App ID ↓</option>
+          <option value="category">Sort: Category</option>
         </select>
       </div>
       <div class="chips" id="chips">
@@ -232,7 +241,7 @@ h1{font-size:clamp(27px,8vw,44px);line-height:1.03;letter-spacing:-.04em;margin:
       <div class="card">
         <h2>How to decide</h2>
         <div class="insightList">
-          <div class="insight"><b>1. Shortlist what you actually want</b><span>Raw library size can exaggerate value. Star Folk-only games Sin would realistically install or play.</span></div>
+          <div class="insight"><b>1. Shortlist what you actually want</b><span>Raw library size can exaggerate value. Use ★ across any category to build a practical shortlist of games that matter.</span></div>
           <div class="insight"><b>2. Check Steam Families eligibility</b><span>Confirm your shortlisted titles are eligible for family sharing before treating them as gained access.</span></div>
           <div class="insight"><b>3. Consider the commitment</b><span>Only join when the useful shortlist is strong enough to justify the family membership constraints for your situation.</span></div>
         </div>
@@ -281,7 +290,7 @@ function saveShortlist(){
   try { localStorage.setItem("steam-family-shortlist", JSON.stringify([...shortlist])); } catch (_) {}
 }
 function cleanShortlist(){
-  const valid=new Set(rows.filter(r=>r.category==="friend_only").map(keyOf));
+  const valid=new Set(rows.map(keyOf));
   shortlist=new Set([...shortlist].filter(k=>valid.has(k)));
   saveShortlist();
 }
@@ -332,15 +341,24 @@ function renderOverview(){
 function renderGameList(){
   const q=$("searchInput").value.trim().toLowerCase();
   const sort=$("sortSelect").value;
+  const playFilter=$("playFilterSelect").value;
+
   let list=rows.filter(r=>{
-    if(currentFilter==="shortlist") return shortlist.has(keyOf(r));
-    if(currentFilter!=="all" && r.category!==currentFilter) return false;
+    if(currentFilter==="shortlist" && !shortlist.has(keyOf(r))) return false;
+    if(currentFilter!=="all" && currentFilter!=="shortlist" && r.category!==currentFilter) return false;
+    if(playFilter==="played" && r.playtime_minutes<=0) return false;
+    if(playFilter==="unplayed" && r.playtime_minutes>0) return false;
     return true;
   }).filter(r=>!q || r.game.toLowerCase().includes(q) || String(r.appid).includes(q));
 
+  const categoryOrder={friend_only:0,your_only:1,shared:2};
   list.sort((a,b)=>{
+    if(sort==="name_desc") return b.game.localeCompare(a.game);
     if(sort==="play_desc") return b.playtime_minutes-a.playtime_minutes || a.game.localeCompare(b.game);
     if(sort==="play_asc") return a.playtime_minutes-b.playtime_minutes || a.game.localeCompare(b.game);
+    if(sort==="appid_asc") return a.appid-b.appid || a.game.localeCompare(b.game);
+    if(sort==="appid_desc") return b.appid-a.appid || a.game.localeCompare(b.game);
+    if(sort==="category") return (categoryOrder[a.category]-categoryOrder[b.category]) || a.game.localeCompare(b.game);
     return a.game.localeCompare(b.game);
   });
 
@@ -354,13 +372,13 @@ function renderGameList(){
   }
 
   $("gameList").innerHTML=list.map(r=>{
-    const k=keyOf(r), canStar=r.category==="friend_only", on=shortlist.has(k);
+    const k=keyOf(r), on=shortlist.has(k);
     return `<article class="game">
       <div>
         <div class="gameTitle">${escapeHtml(r.game)}</div>
         <div class="meta"><span class="badge">${categoryLabel(r.category)}</span><span>App ${r.appid}</span><span>${fmtHours(r.playtime_minutes)}</span></div>
       </div>
-      ${canStar ? `<button class="star ${on?"on":""}" type="button" data-star="${escapeHtml(k)}" aria-label="${on?"Remove from":"Add to"} shortlist">${on?"★":"☆"}</button>` : ""}
+      <button class="star ${on?"on":""}" type="button" data-star="${escapeHtml(k)}" aria-label="${on?"Remove from":"Add to"} shortlist">${on?"★":"☆"}</button>
     </article>`;
   }).join("");
 
@@ -460,6 +478,7 @@ document.querySelectorAll(".navBtn").forEach(b=>b.addEventListener("click",()=>s
 document.querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>setFilter(b.dataset.filter)));
 $("searchInput").addEventListener("input",renderGameList);
 $("sortSelect").addEventListener("change",renderGameList);
+$("playFilterSelect").addEventListener("change",renderGameList);
 $("viewShortBtn").addEventListener("click",()=>{setSection("browse");setFilter("shortlist")});
 $("fileInput").addEventListener("change",e=>{
   const f=e.target.files && e.target.files[0]; if(!f)return;
