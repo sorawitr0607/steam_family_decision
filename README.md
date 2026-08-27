@@ -1,4 +1,4 @@
-# Steam Family Decision v8 — Cloudflare Pages
+# Steam Family Decision  — Cloudflare Pages
 
 ## Files
 
@@ -18,12 +18,14 @@ README.md
 Create a Pages project from this GitHub repo.
 
 Recommended settings:
+
 - Production branch: main
 - Framework preset: None
 - Build command: exit 0
 - Build output directory: public
 
 Then add this secret in the Pages project:
+
 - STEAM_API_KEY = your Steam Web API key
 
 Do not put the API key in index.html.
