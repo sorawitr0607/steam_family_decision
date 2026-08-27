@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1118">
+<title>Steam Family Decision Dashboard</title>
+<style>
+:root{
+  --bg:#0b1118;--panel:#131d27;--panel2:#182532;--line:#273746;
+  --text:#eef5f8;--muted:#93a7b5;--accent:#66c0f4;--accent2:#1a9fff;
+  --good:#75d99a;--warn:#f1c76b;--danger:#ff8b8b;
+  --friend:#67c5f3;--you:#9e8df7;--shared:#75d99a;
+}
+*{box-sizing:border-box}
+html{background:var(--bg);color-scheme:dark}
+body{
+  margin:0;background:
+  radial-gradient(circle at 15% -10%,rgba(31,91,127,.34),transparent 38rem),
+  var(--bg);color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.app{max-width:1120px;margin:auto;padding:18px 14px 92px}
+.hero{padding:6px 2px 18px}
+.eyebrow{font-size:12px;color:var(--accent);font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+h1{font-size:clamp(27px,8vw,44px);line-height:1.03;letter-spacing:-.04em;margin:6px 0 8px}
+.hero p{margin:0;color:var(--muted);line-height:1.5;max-width:760px;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn,.fileBtn{
+  min-height:44px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);
+  color:var(--text);padding:10px 13px;font-weight:800;cursor:pointer;display:inline-flex;
+  align-items:center;justify-content:center;gap:7px;text-decoration:none
+}
+.btn.primary{background:linear-gradient(90deg,var(--accent2),var(--accent));border-color:transparent;color:#06131c}
+.fileBtn input{display:none}
+.panel{background:rgba(19,29,39,.94);border:1px solid var(--line);border-radius:18px;padding:15px}
+.section{display:none}.section.active{display:block}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{background:#101922;border:1px solid var(--line);border-radius:15px;padding:14px;min-width:0}
+.kpi .value{font-size:29px;line-height:1;font-weight:900;letter-spacing:-.04em}
+.kpi .label{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.3}
+.kpi.highlight{border-color:#315977;background:linear-gradient(145deg,#102534,#101922)}
+.kpi.good{border-color:#315842}
+.twoCol{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+.card{background:#101922;border:1px solid var(--line);border-radius:16px;padding:15px;min-width:0}
+.card h2,.card h3{margin:0}
+.card h2{font-size:17px}.card h3{font-size:14px}
+.muted{color:var(--muted)}
+.snapshot{display:flex;gap:14px;align-items:center}
+.donut{
+  flex:0 0 112px;width:112px;height:112px;border-radius:50%;
+  display:grid;place-items:center;position:relative
+}
+.donut::after{content:"";width:66px;height:66px;border-radius:50%;background:#101922;position:absolute}
+.donutText{position:relative;z-index:1;text-align:center}
+.donutText b{font-size:21px;display:block}.donutText span{font-size:9px;color:var(--muted)}
+.snapText{min-width:0}
+.snapText .grade{font-size:20px;font-weight:900;margin:2px 0 6px}
+.snapText p{font-size:12px;line-height:1.45;margin:0;color:var(--muted)}
+.barBlock{margin-top:14px}
+.barHead{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:6px}
+.track{height:10px;border-radius:999px;background:#1e2c38;overflow:hidden}
+.fill{height:100%;border-radius:999px;background:var(--accent)}
+.fill.you{background:var(--you)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:11px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.insightList{display:grid;gap:9px;margin-top:12px}
+.insight{padding:11px;border-radius:12px;background:#15212c}
+.insight b{display:block;font-size:13px;margin-bottom:3px}
+.insight span{font-size:12px;color:var(--muted);line-height:1.4}
+.controls{display:grid;grid-template-columns:1fr;gap:9px;margin-bottom:12px}
+.search{position:relative}
+.search input,.select{
+  width:100%;min-height:46px;border:1px solid var(--line);background:#0e1720;color:var(--text);
+  border-radius:12px;padding:11px 12px;font-size:16px;outline:none
+}
+.search input:focus,.select:focus{border-color:var(--accent)}
+.chips{display:flex;gap:7px;overflow:auto;padding:2px 0 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  min-height:40px;white-space:nowrap;border:1px solid var(--line);border-radius:999px;
+  background:#15212c;color:var(--muted);padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer
+}
+.chip.active{background:var(--accent);color:#07151e;border-color:var(--accent)}
+.listTop{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}
+.listTop b{font-size:13px}.listTop span{color:var(--muted);font-size:11px}
+.games{display:grid;gap:8px}
+.game{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;
+  background:#101922;border:1px solid var(--line);border-radius:14px;padding:11px
+}
+.gameTitle{font-weight:800;font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+.meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:5px;color:var(--muted);font-size:11px}
+.badge{padding:3px 7px;border-radius:999px;background:#1a2a36}
+.star{
+  width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#17242f;
+  color:#8fa4b2;font-size:21px;cursor:pointer
+}
+.star.on{color:var(--warn);border-color:#685b32;background:#2a2619}
+.empty{padding:25px 8px;text-align:center;color:var(--muted);font-size:13px}
+.rank{display:grid;gap:9px;margin-top:11px}
+.rankRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.rankName{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rankHours{font-size:11px;color:var(--muted)}
+.miniTrack{grid-column:1/-1;height:6px;border-radius:999px;background:#1e2c38;overflow:hidden}
+.miniFill{height:100%;border-radius:999px;background:var(--friend)}
+.miniFill.you{background:var(--you)}.miniFill.shared{background:var(--shared)}
+.notice{font-size:11px;line-height:1.5;color:var(--muted);margin-top:12px;padding:11px;border:1px dashed #334656;border-radius:12px}
+.shortlistBanner{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.shortlistBanner strong{font-size:17px}.shortlistBanner p{font-size:11px;color:var(--muted);margin:4px 0 0}
+.bottomNav{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,1120px);
+  background:rgba(10,16,23,.95);border-top:1px solid var(--line);
+  padding:7px max(10px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+  display:grid;grid-template-columns:repeat(3,1fr);gap:5px;backdrop-filter:blur(12px);z-index:10
+}
+.navBtn{min-height:50px;border:0;background:transparent;color:var(--muted);border-radius:12px;font-size:11px;font-weight:800;cursor:pointer}
+.navBtn span{display:block;font-size:19px;line-height:1.1;margin-bottom:3px}
+.navBtn.active{background:#172532;color:var(--text)}
+.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#213240;color:var(--text);padding:9px 12px;border-radius:10px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:20}
+.toast.show{opacity:1}
+@media(min-width:700px){
+  .app{padding:28px 24px 100px}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .twoCol{grid-template-columns:1.08fr .92fr}
+  .controls{grid-template-columns:minmax(0,1fr) 190px}
+  .games{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bottomNav{border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0}
+}
+@media(min-width:980px){
+  .games{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hero">
+    <div class="eyebrow">Steam Family decision</div>
+    <h1>Library analysis dashboard</h1>
+    <p>See how much new value each library adds, find the games that matter, and shortlist friend-only titles before you decide to join.</p>
+    <div class="actions">
+      <label class="fileBtn">↥ Import another CSV<input id="fileInput" type="file" accept=".csv,text/csv"></label>
+      <button class="btn" id="resetBtn" type="button">Reset to this result</button>
+    </div>
+  </header>
+
+  <section class="section active" data-section="overview">
+    <div class="kpis">
+      <div class="kpi highlight"><div class="value" id="friendOnlyKpi">—</div><div class="label">Potential new games for Sin</div></div>
+      <div class="kpi"><div class="value" id="yourOnlyKpi">—</div><div class="label">Unique games Sin brings</div></div>
+      <div class="kpi good"><div class="value" id="sharedKpi">—</div><div class="label">Games both already own</div></div>
+      <div class="kpi"><div class="value" id="combinedKpi">—</div><div class="label">Combined unique games</div></div>
+    </div>
+
+    <div class="twoCol">
+      <div class="card">
+        <h2>Decision snapshot</h2>
+        <div class="snapshot" style="margin-top:13px">
+          <div class="donut" id="donut"><div class="donutText"><b id="exclusivePct">—</b><span>exclusive</span></div></div>
+          <div class="snapText">
+            <div class="muted" style="font-size:11px">Library complement</div>
+            <div class="grade" id="grade">—</div>
+            <p id="gradeText"></p>
+          </div>
+        </div>
+        <div class="barBlock">
+          <div class="barHead"><span>Folk's library that is new to Sin</span><b id="friendNoveltyText">—</b></div>
+          <div class="track"><div class="fill" id="friendNoveltyBar"></div></div>
+        </div>
+        <div class="barBlock">
+          <div class="barHead"><span>Sin's library that is new to Folk</span><b id="yourNoveltyText">—</b></div>
+          <div class="track"><div class="fill you" id="yourNoveltyBar"></div></div>
+        </div>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--friend)"></i>Folk only</span>
+          <span><i class="dot" style="background:var(--you)"></i>Sin only</span>
+          <span><i class="dot" style="background:var(--shared)"></i>Shared</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="shortlistBanner">
+          <div><strong><span id="shortCount">0</span> games shortlisted</strong><p>Star Folk-only games Sin actually wants to play.</p></div>
+          <button class="btn" type="button" id="viewShortBtn">View</button>
+        </div>
+        <div class="insightList" id="insightList"></div>
+        <div class="notice">“Potential new games” is an ownership comparison only. Steam Families eligibility can differ by title, publisher restrictions, region, or account requirements.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" data-section="browse">
+    <div class="panel">
+      <div class="controls">
+        <div class="search"><input id="searchInput" type="search" inputmode="search" placeholder="Search games or App ID…"></div>
+        <select id="sortSelect" class="select" aria-label="Sort games">
+          <option value="name">Sort: A–Z</option>
+          <option value="play_desc">Sort: Most played</option>
+          <option value="play_asc">Sort: Least played</option>
+        </select>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip active" type="button" data-filter="friend_only">Folk only</button>
+        <button class="chip" type="button" data-filter="your_only">Sin only</button>
+        <button class="chip" type="button" data-filter="shared">Both own</button>
+        <button class="chip" type="button" data-filter="shortlist">★ Shortlist</button>
+        <button class="chip" type="button" data-filter="all">All</button>
+      </div>
+      <div class="listTop"><b id="resultTitle">Folk-only games</b><span id="resultCount">0 results</span></div>
+      <div class="games" id="gameList"></div>
+    </div>
+  </section>
+
+  <section class="section" data-section="insights">
+    <div class="twoCol" style="margin-top:0">
+      <div class="card">
+        <h2>Most-played Folk-only games</h2>
+        <p class="muted" style="font-size:11px;margin:5px 0 0">Useful as a proxy for titles Folk has spent real time with.</p>
+        <div class="rank" id="friendRank"></div>
+      </div>
+      <div class="card">
+        <h2>Most-played games Sin brings</h2>
+        <p class="muted" style="font-size:11px;margin:5px 0 0">Shows where Sin's unique library has the strongest engagement.</p>
+        <div class="rank" id="yourRank"></div>
+      </div>
+      <div class="card">
+        <h2>Playtime profile</h2>
+        <div class="insightList" id="playtimeInsights"></div>
+      </div>
+      <div class="card">
+        <h2>How to decide</h2>
+        <div class="insightList">
+          <div class="insight"><b>1. Shortlist what you actually want</b><span>Raw library size can exaggerate value. Star Folk-only games Sin would realistically install or play.</span></div>
+          <div class="insight"><b>2. Check Steam Families eligibility</b><span>Confirm your shortlisted titles are eligible for family sharing before treating them as gained access.</span></div>
+          <div class="insight"><b>3. Consider the commitment</b><span>Only join when the useful shortlist is strong enough to justify the family membership constraints for your situation.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<nav class="bottomNav" aria-label="Dashboard sections">
+  <button class="navBtn active" type="button" data-nav="overview"><span>◉</span>Overview</button>
+  <button class="navBtn" type="button" data-nav="browse"><span>⌕</span>Games</button>
+  <button class="navBtn" type="button" data-nav="insights"><span>▥</span>Insights</button>
+</nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const ORIGINAL_DATA = [{"category": "friend_only", "appid": 251570, "game": "7 Days to Die", "playtime_minutes": 7214}, {"category": "friend_only", "appid": 473690, "game": "Absolver", "playtime_minutes": 1303}, {"category": "friend_only", "appid": 346110, "game": "ARK: Survival Evolved", "playtime_minutes": 300}, {"category": "friend_only", "appid": 407530, "game": "ARK: Survival Of The Fittest", "playtime_minutes": 0}, {"category": "friend_only", "appid": 1086940, "game": "Baldur's Gate 3", "playtime_minutes": 8665}, {"category": "friend_only", "appid": 1755350, "game": "BBQ Simulator: The Squad", "playtime_minutes": 83}, {"category": "friend_only", "appid": 738520, "game": "Breathedge", "playtime_minutes": 0}, {"category": "friend_only", "appid": 2697930, "game": "Commander Quest", "playtime_minutes": 913}, {"category": "friend_only", "appid": 2881650, "game": "Content Warning", "playtime_minutes": 0}, {"category": "friend_only", "appid": 1158160, "game": "Coral Island", "playtime_minutes": 1436}, {"category": "friend_only", "appid": 718670, "game": "Cultist Simulator", "playtime_minutes": 1455}, {"category": "friend_only", "appid": 2449040, "game": "Cursorblade", "playtime_minutes": 60}, {"category": "friend_only", "appid": 1868140, "game": "DAVE THE DIVER", "playtime_minutes": 2700}, {"category": "friend_only", "appid": 2064870, "game": "Deceit 2", "playtime_minutes": 1130}, {"category": "friend_only", "appid": 214340, "game": "Deponia", "playtime_minutes": 0}, {"category": "friend_only", "appid": 1274570, "game": "DEVOUR", "playtime_minutes": 203}, {"category": "friend_only", "appid": 322330, "game": "Don't Starve Together", "playtime_minutes": 244}, {"category": "friend_only", "appid": 3526710, "game": "Everything is Crab", "playtime_minutes": 171}, {"category": "friend_only", "appid": 273350, "game": "Evolve Stage 2", "playtime_minutes": 438}, {"category": "friend_only", "appid": 1651560, "game": "Fabledom", "playtime_minutes": 69}, {"category": "friend_only", "appid": 296220, "game": "Farm Frenzy 4", "playtime_minutes": 356}, {"category": "friend_only", "appid": 505460, "game": "Foxhole", "playtime_minutes": 396}, {"category": "friend_only", "appid": 917150, "game": "Godhood", "playtime_minutes": 872}, {"category": "friend_only", "appid": 269210, "game": "Hero Siege", "playtime_minutes": 51}, {"category": "friend_only", "appid": 990080, "game": "Hogwarts Legacy", "playtime_minutes": 3254}, {"category": "friend_only", "appid": 1030300, "game": "Hollow Knight: Silksong", "playtime_minutes": 312}, {"category": "friend_only", "appid": 1056600, "game": "Home Sweet Home Survive", "playtime_minutes": 182}, {"category": "friend_only", "appid": 2264140, "game": "How 2 Escape", "playtime_minutes": 54}, {"category": "friend_only", "appid": 807120, "game": "Iratus: Lord of the Dead", "playtime_minutes": 18}, {"category": "friend_only", "appid": 341800, "game": "Keep Talking and Nobody Explodes", "playtime_minutes": 17}, {"category": "friend_only", "appid": 550, "game": "Left 4 Dead 2", "playtime_minutes": 1901}, {"category": "friend_only", "appid": 978520, "game": "Legend of Keepers", "playtime_minutes": 412}, {"category": "friend_only", "appid": 3716600, "game": "Mage Arena", "playtime_minutes": 188}, {"category": "friend_only", "appid": 1102190, "game": "Monster Train", "playtime_minutes": 0}, {"category": "friend_only", "appid": 606150, "game": "Moonlighter", "playtime_minutes": 0}, {"category": "friend_only", "appid": 629760, "game": "MORDHAU", "playtime_minutes": 1007}, {"category": "friend_only", "appid": 307780, "game": "Mortal Kombat X", "playtime_minutes": 375}, {"category": "friend_only", "appid": 349040, "game": "NARUTO SHIPPUDEN: Ultimate Ninja STORM 4", "playtime_minutes": 271}, {"category": "friend_only", "appid": 1169040, "game": "Necesse", "playtime_minutes": 194}, {"category": "friend_only", "appid": 275850, "game": "No Man's Sky", "playtime_minutes": 3254}, {"category": "friend_only", "appid": 829660, "game": "No Time to Relax", "playtime_minutes": 859}, {"category": "friend_only", "appid": 893720, "game": "One Hand Clapping", "playtime_minutes": 10}, {"category": "friend_only", "appid": 1623730, "game": "Palworld", "playtime_minutes": 696}, {"category": "friend_only", "appid": 1260320, "game": "Party Animals", "playtime_minutes": 1000}, {"category": "friend_only", "appid": 3527290, "game": "PEAK", "playtime_minutes": 171}, {"category": "friend_only", "appid": 493340, "game": "Planet Coaster", "playtime_minutes": 0}, {"category": "friend_only", "appid": 374040, "game": "Portal Knights", "playtime_minutes": 801}, {"category": "friend_only", "appid": 3241660, "game": "R.E.P.O.", "playtime_minutes": 744}, {"category": "friend_only", "appid": 648800, "game": "Raft", "playtime_minutes": 732}, {"category": "friend_only", "appid": 418460, "game": "Rising Storm 2: Vietnam", "playtime_minutes": 21}, {"category": "friend_only", "appid": 1276790, "game": "Ruined King: A League of Legends Story™", "playtime_minutes": 758}, {"category": "friend_only", "appid": 8930, "game": "Sid Meier's Civilization V", "playtime_minutes": 5990}, {"category": "friend_only", "appid": 289070, "game": "Sid Meier's Civilization VI", "playtime_minutes": 2084}, {"category": "friend_only", "appid": 972660, "game": "Spiritfarer®: Farewell Edition", "playtime_minutes": 0}, {"category": "friend_only", "appid": 413150, "game": "Stardew Valley", "playtime_minutes": 16518}, {"category": "friend_only", "appid": 264710, "game": "Subnautica", "playtime_minutes": 1853}, {"category": "friend_only", "appid": 4011300, "game": "Super Shout Showdown", "playtime_minutes": 0}, {"category": "friend_only", "appid": 105600, "game": "Terraria", "playtime_minutes": 11964}, {"category": "friend_only", "appid": 1281590, "game": "The Dark Pictures Anthology: House of Ashes", "playtime_minutes": 0}, {"category": "friend_only", "appid": 1775270, "game": "The Dark Pictures Anthology: House of Ashes - Friend's Pass", "playtime_minutes": 0}, {"category": "friend_only", "appid": 1194630, "game": "The Dark Pictures Anthology: Little Hope", "playtime_minutes": 0}, {"category": "friend_only", "appid": 1537710, "game": "The Dark Pictures Anthology: Little Hope - Friend's Pass", "playtime_minutes": 0}, {"category": "friend_only", "appid": 939850, "game": "The Dark Pictures Anthology: Man of Medan", "playtime_minutes": 132}, {"category": "friend_only", "appid": 1567020, "game": "The Dark Pictures Anthology: The Devil in Me", "playtime_minutes": 170}, {"category": "friend_only", "appid": 2285890, "game": "The Dark Pictures Anthology: The Devil in Me - Friend's Pass", "playtime_minutes": 0}, {"category": "friend_only", "appid": 518790, "game": "theHunter: Call of the Wild™", "playtime_minutes": 95}, {"category": "friend_only", "appid": 460930, "game": "Tom Clancy's Ghost Recon® Wildlands", "playtime_minutes": 0}, {"category": "friend_only", "appid": 359550, "game": "Tom Clancy's Rainbow Six Siege", "playtime_minutes": 1112}, {"category": "friend_only", "appid": 623990, "game": "Tom Clancy's Rainbow Six Siege - Test Server", "playtime_minutes": 0}, {"category": "friend_only", "appid": 779340, "game": "Total War: THREE KINGDOMS", "playtime_minutes": 4601}, {"category": "friend_only", "appid": 1142710, "game": "Total War: WARHAMMER III", "playtime_minutes": 95}, {"category": "friend_only", "appid": 508440, "game": "Totally Accurate Battle Simulator", "playtime_minutes": 1250}, {"category": "friend_only", "appid": 304050, "game": "Trove", "playtime_minutes": 1206}, {"category": "friend_only", "appid": 1794680, "game": "Vampire Survivors", "playtime_minutes": 936}, {"category": "friend_only", "appid": 230190, "game": "War for the Overworld", "playtime_minutes": 857}, {"category": "friend_only", "appid": 268500, "game": "XCOM 2", "playtime_minutes": 65}, {"category": "your_only", "appid": 371140, "game": "Aegis Defenders", "playtime_minutes": 0}, {"category": "your_only", "appid": 1808500, "game": "ARC Raiders", "playtime_minutes": 3250}, {"category": "your_only", "appid": 2427520, "game": "ARC Raiders Playtest", "playtime_minutes": 3}, {"category": "your_only", "appid": 361420, "game": "ASTRONEER", "playtime_minutes": 665}, {"category": "your_only", "appid": 2062430, "game": "BALL x PIT", "playtime_minutes": 0}, {"category": "your_only", "appid": 618140, "game": "Barro", "playtime_minutes": 0}, {"category": "your_only", "appid": 277490, "game": "Battle Group 2", "playtime_minutes": 0}, {"category": "your_only", "appid": 346010, "game": "Besiege", "playtime_minutes": 311}, {"category": "your_only", "appid": 7670, "game": "BioShock", "playtime_minutes": 0}, {"category": "your_only", "appid": 8850, "game": "BioShock 2", "playtime_minutes": 0}, {"category": "your_only", "appid": 409720, "game": "BioShock 2 Remastered", "playtime_minutes": 0}, {"category": "your_only", "appid": 8870, "game": "BioShock Infinite", "playtime_minutes": 0}, {"category": "your_only", "appid": 409710, "game": "BioShock Remastered", "playtime_minutes": 0}, {"category": "your_only", "appid": 227860, "game": "Castle Story", "playtime_minutes": 357}, {"category": "your_only", "appid": 1492330, "game": "Century Playtest", "playtime_minutes": 304}, {"category": "your_only", "appid": 255710, "game": "Cities: Skylines", "playtime_minutes": 201}, {"category": "your_only", "appid": 3314790, "game": "CloverPit", "playtime_minutes": 0}, {"category": "your_only", "appid": 254020, "game": "Commander: Conquest of the Americas Gold", "playtime_minutes": 0}, {"category": "your_only", "appid": 302650, "game": "Cyto", "playtime_minutes": 0}, {"category": "your_only", "appid": 262060, "game": "Darkest Dungeon®", "playtime_minutes": 1625}, {"category": "your_only", "appid": 1422450, "game": "Deadlock", "playtime_minutes": 6612}, {"category": "your_only", "appid": 760620, "game": "Deiland", "playtime_minutes": 0}, {"category": "your_only", "appid": 310560, "game": "DiRT Rally", "playtime_minutes": 0}, {"category": "your_only", "appid": 632470, "game": "Disco Elysium", "playtime_minutes": 0}, {"category": "your_only", "appid": 442070, "game": "Drawful 2", "playtime_minutes": 0}, {"category": "your_only", "appid": 259300, "game": "Earth 2150: Lost Souls", "playtime_minutes": 0}, {"category": "your_only", "appid": 254000, "game": "East India Company Gold", "playtime_minutes": 0}, {"category": "your_only", "appid": 1245620, "game": "ELDEN RING", "playtime_minutes": 947}, {"category": "your_only", "appid": 253980, "game": "Enclave", "playtime_minutes": 0}, {"category": "your_only", "appid": 3167020, "game": "Escape From Duckov", "playtime_minutes": 305}, {"category": "your_only", "appid": 737800, "game": "F1 2018", "playtime_minutes": 0}, {"category": "your_only", "appid": 304390, "game": "FOR HONOR", "playtime_minutes": 0}, {"category": "your_only", "appid": 654310, "game": "For Honor - Public Test", "playtime_minutes": 0}, {"category": "your_only", "appid": 323190, "game": "Frostpunk", "playtime_minutes": 0}, {"category": "your_only", "appid": 350300, "game": "Gang of Four", "playtime_minutes": 0}, {"category": "your_only", "appid": 4000, "game": "Garry's Mod", "playtime_minutes": 380}, {"category": "your_only", "appid": 265930, "game": "Goat Simulator", "playtime_minutes": 422}, {"category": "your_only", "appid": 3240220, "game": "Grand Theft Auto V Enhanced", "playtime_minutes": 0}, {"category": "your_only", "appid": 271590, "game": "Grand Theft Auto V Legacy", "playtime_minutes": 4474}, {"category": "your_only", "appid": 599140, "game": "Graveyard Keeper", "playtime_minutes": 0}, {"category": "your_only", "appid": 439700, "game": "H1Z1: Test Server", "playtime_minutes": 14}, {"category": "your_only", "appid": 797410, "game": "Headsnatchers", "playtime_minutes": 0}, {"category": "your_only", "appid": 588210, "game": "HELLION", "playtime_minutes": 0}, {"category": "your_only", "appid": 613100, "game": "House Flipper", "playtime_minutes": 0}, {"category": "your_only", "appid": 477160, "game": "Human Fall Flat", "playtime_minutes": 0}, {"category": "your_only", "appid": 1271140, "game": "HUMANKIND™ - Closed Beta", "playtime_minutes": 0}, {"category": "your_only", "appid": 385270, "game": "Jet Racing Extreme", "playtime_minutes": 0}, {"category": "your_only", "appid": 699240, "game": "Keyboard Killers", "playtime_minutes": 0}, {"category": "your_only", "appid": 496300, "game": "Kingdom: New Lands", "playtime_minutes": 197}, {"category": "your_only", "appid": 1911390, "game": "Knightfall: A Daring Journey", "playtime_minutes": 0}, {"category": "your_only", "appid": 289690, "game": "Lara Croft and the Temple of Osiris", "playtime_minutes": 0}, {"category": "your_only", "appid": 391720, "game": "Layers of Fear (2016)", "playtime_minutes": 0}, {"category": "your_only", "appid": 424840, "game": "Little Nightmares", "playtime_minutes": 0}, {"category": "your_only", "appid": 2149010, "game": "Little Nightmares Enhanced Edition", "playtime_minutes": 0}, {"category": "your_only", "appid": 1282730, "game": "Loop Hero", "playtime_minutes": 2051}, {"category": "your_only", "appid": 993090, "game": "Lossless Scaling", "playtime_minutes": 51}, {"category": "your_only", "appid": 3065800, "game": "Marathon", "playtime_minutes": 163}, {"category": "your_only", "appid": 1817190, "game": "Marvel's Spider-Man: Miles Morales", "playtime_minutes": 665}, {"category": "your_only", "appid": 3405340, "game": "Megabonk", "playtime_minutes": 685}, {"category": "your_only", "appid": 395140, "game": "Miracle Fly", "playtime_minutes": 13}, {"category": "your_only", "appid": 2246340, "game": "Monster Hunter Wilds", "playtime_minutes": 4585}, {"category": "your_only", "appid": 3065170, "game": "Monster Hunter Wilds Beta test", "playtime_minutes": 709}, {"category": "your_only", "appid": 48700, "game": "Mount & Blade: Warband", "playtime_minutes": 258}, {"category": "your_only", "appid": 557340, "game": "My Friend Pedro", "playtime_minutes": 60}, {"category": "your_only", "appid": 457140, "game": "Oxygen Not Included", "playtime_minutes": 1097}, {"category": "your_only", "appid": 2694490, "game": "Path of Exile 2", "playtime_minutes": 14263}, {"category": "your_only", "appid": 254040, "game": "Pirates of Black Cove Gold", "playtime_minutes": 0}, {"category": "your_only", "appid": 431220, "game": "Porradaria 2: Pagode of the Night", "playtime_minutes": 39}, {"category": "your_only", "appid": 205610, "game": "Port Royale 3", "playtime_minutes": 6}, {"category": "your_only", "appid": 4603730, "game": "Probably Stolen Playtest", "playtime_minutes": 355}, {"category": "your_only", "appid": 3784030, "game": "RACCOIN: Coin Pusher Roguelike", "playtime_minutes": 0}, {"category": "your_only", "appid": 680360, "game": "Regions Of Ruin", "playtime_minutes": 0}, {"category": "your_only", "appid": 326340, "game": "River City Super Sports Challenge ~All Stars Special~", "playtime_minutes": 225}, {"category": "your_only", "appid": 252490, "game": "Rust", "playtime_minutes": 666}, {"category": "your_only", "appid": 700580, "game": "Rust - Staging Branch", "playtime_minutes": 0}, {"category": "your_only", "appid": 449680, "game": "SAMOLIOTIK", "playtime_minutes": 0}, {"category": "your_only", "appid": 2981610, "game": "Sand Playtest", "playtime_minutes": 198}, {"category": "your_only", "appid": 3631290, "game": "Slots & Daggers", "playtime_minutes": 24}, {"category": "your_only", "appid": 544330, "game": "Snake Pass", "playtime_minutes": 0}, {"category": "your_only", "appid": 34870, "game": "Sniper Ghost Warrior 2", "playtime_minutes": 0}, {"category": "your_only", "appid": 341930, "game": "Space Station Alpha", "playtime_minutes": 0}, {"category": "your_only", "appid": 253650, "game": "Sparkle 2 Evo", "playtime_minutes": 0}, {"category": "your_only", "appid": 252850, "game": "Streamline", "playtime_minutes": 0}, {"category": "your_only", "appid": 463700, "game": "Super Cloudbuilt ", "playtime_minutes": 0}, {"category": "your_only", "appid": 365190, "game": "TASTEE: Lethal Tactics", "playtime_minutes": 0}, {"category": "your_only", "appid": 285920, "game": "TerraTech", "playtime_minutes": 761}, {"category": "your_only", "appid": 250900, "game": "The Binding of Isaac: Rebirth", "playtime_minutes": 0}, {"category": "your_only", "appid": 1600360, "game": "The Cycle Playtest", "playtime_minutes": 1240}, {"category": "your_only", "appid": 420740, "game": "The Deed", "playtime_minutes": 0}, {"category": "your_only", "appid": 640590, "game": "The LEGO® NINJAGO® Movie Video Game", "playtime_minutes": 0}, {"category": "your_only", "appid": 600430, "game": "Ticket to Ride: First Journey", "playtime_minutes": 0}, {"category": "your_only", "appid": 297130, "game": "Titan Souls", "playtime_minutes": 0}, {"category": "your_only", "appid": 535930, "game": "Two Point Hospital", "playtime_minutes": 243}, {"category": "your_only", "appid": 616560, "game": "Ultimate Epic Battle Simulator", "playtime_minutes": 0}, {"category": "your_only", "appid": 1135690, "game": "Unpacking", "playtime_minutes": 291}, {"category": "your_only", "appid": 1979310, "game": "VEILED EXPERTS FINAL BETA", "playtime_minutes": 0}, {"category": "your_only", "appid": 433850, "game": "Z1 Battle Royale", "playtime_minutes": 605}, {"category": "shared", "appid": 2784470, "game": "9 Kings", "playtime_minutes": 1128}, {"category": "shared", "appid": 226840, "game": "Age of Wonders III", "playtime_minutes": 54}, {"category": "shared", "appid": 1621690, "game": "Core Keeper", "playtime_minutes": 863}, {"category": "shared", "appid": 730, "game": "Counter-Strike 2", "playtime_minutes": 5007}, {"category": "shared", "appid": 381210, "game": "Dead by Daylight", "playtime_minutes": 6784}, {"category": "shared", "appid": 588650, "game": "Dead Cells", "playtime_minutes": 1667}, {"category": "shared", "appid": 555440, "game": "Deathgarden: BLOODHARVEST", "playtime_minutes": 1332}, {"category": "shared", "appid": 1455840, "game": "Dorfromantik", "playtime_minutes": 124}, {"category": "shared", "appid": 1046930, "game": "Dota Underlords", "playtime_minutes": 2558}, {"category": "shared", "appid": 1097150, "game": "Fall Guys", "playtime_minutes": 1283}, {"category": "shared", "appid": 4001890, "game": "How to Fish", "playtime_minutes": 0}, {"category": "shared", "appid": 242700, "game": "Injustice: Gods Among Us Ultimate Edition", "playtime_minutes": 0}, {"category": "shared", "appid": 1966720, "game": "Lethal Company", "playtime_minutes": 424}, {"category": "shared", "appid": 4704690, "game": "MECCHA CHAMELEON", "playtime_minutes": 95}, {"category": "shared", "appid": 582010, "game": "Monster Hunter: World", "playtime_minutes": 9905}, {"category": "shared", "appid": 1371980, "game": "No Rest for the Wicked", "playtime_minutes": 2041}, {"category": "shared", "appid": 728880, "game": "Overcooked! 2", "playtime_minutes": 735}, {"category": "shared", "appid": 218620, "game": "PAYDAY 2", "playtime_minutes": 24}, {"category": "shared", "appid": 739630, "game": "Phasmophobia", "playtime_minutes": 1211}, {"category": "shared", "appid": 108600, "game": "Project Zomboid", "playtime_minutes": 464}, {"category": "shared", "appid": 578080, "game": "PUBG: BATTLEGROUNDS", "playtime_minutes": 15634}, {"category": "shared", "appid": 1172620, "game": "Sea of Thieves", "playtime_minutes": 361}, {"category": "shared", "appid": 646570, "game": "Slay the Spire", "playtime_minutes": 942}, {"category": "shared", "appid": 2868840, "game": "Slay the Spire 2", "playtime_minutes": 4251}, {"category": "shared", "appid": 1948280, "game": "Stacklands", "playtime_minutes": 0}, {"category": "shared", "appid": 292030, "game": "The Witcher 3: Wild Hunt - Complete Edition", "playtime_minutes": 581}, {"category": "shared", "appid": 203160, "game": "Tomb Raider", "playtime_minutes": 0}, {"category": "shared", "appid": 34330, "game": "Total War: SHOGUN 2", "playtime_minutes": 515}, {"category": "shared", "appid": 394690, "game": "Tower Unite", "playtime_minutes": 1283}, {"category": "shared", "appid": 431960, "game": "Wallpaper Engine", "playtime_minutes": 90}];
+let rows = ORIGINAL_DATA.map(x => ({...x}));
+let currentFilter = "friend_only";
+let shortlist = new Set();
+try {
+  const saved = JSON.parse(localStorage.getItem("steam-family-shortlist") || "[]");
+  shortlist = new Set(Array.isArray(saved) ? saved.map(String) : []);
+} catch (_) {}
+
+const $ = id => document.getElementById(id);
+const keyOf = r => `${r.category}:${r.appid}`;
+const hours = m => (Number(m)||0)/60;
+const fmtHours = m => {
+  const h = hours(m);
+  if (h === 0) return "Not played";
+  return h < 10 ? `${h.toFixed(1)} h` : `${Math.round(h)} h`;
+};
+const pct = (a,b) => b ? (a/b)*100 : 0;
+
+function categoryLabel(c){
+  return c==="friend_only" ? "Folk only" : c==="your_only" ? "Sin only" : c==="shared" ? "Both own" : c;
+}
+function stats(){
+  const fo=rows.filter(r=>r.category==="friend_only");
+  const yo=rows.filter(r=>r.category==="your_only");
+  const sh=rows.filter(r=>r.category==="shared");
+  return {fo,yo,sh,friendTotal:fo.length+sh.length,yourTotal:yo.length+sh.length,combined:rows.length};
+}
+function saveShortlist(){
+  try { localStorage.setItem("steam-family-shortlist", JSON.stringify([...shortlist])); } catch (_) {}
+}
+function cleanShortlist(){
+  const valid=new Set(rows.filter(r=>r.category==="friend_only").map(keyOf));
+  shortlist=new Set([...shortlist].filter(k=>valid.has(k)));
+  saveShortlist();
+}
+function showToast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>t.classList.remove("show"),1500);
+}
+function renderOverview(){
+  const s=stats();
+  $("friendOnlyKpi").textContent=s.fo.length;
+  $("yourOnlyKpi").textContent=s.yo.length;
+  $("sharedKpi").textContent=s.sh.length;
+  $("combinedKpi").textContent=s.combined;
+
+  const exclusive=s.combined ? pct(s.fo.length+s.yo.length,s.combined) : 0;
+  const fn=pct(s.fo.length,s.friendTotal);
+  const yn=pct(s.yo.length,s.yourTotal);
+
+  $("exclusivePct").textContent=`${Math.round(exclusive)}%`;
+  $("friendNoveltyText").textContent=`${fn.toFixed(1)}%`;
+  $("yourNoveltyText").textContent=`${yn.toFixed(1)}%`;
+  $("friendNoveltyBar").style.width=`${Math.min(100,fn)}%`;
+  $("yourNoveltyBar").style.width=`${Math.min(100,yn)}%`;
+
+  const a=s.fo.length, b=s.yo.length, c=s.sh.length, total=Math.max(1,s.combined);
+  const p1=(a/total)*100, p2=((a+b)/total)*100;
+  $("donut").style.background=`conic-gradient(var(--friend) 0 ${p1}%, var(--you) ${p1}% ${p2}%, var(--shared) ${p2}% 100%)`;
+
+  let grade="Low overlap";
+  let text="Most of the combined library is exclusive to one person, so Sin and Folk's libraries complement each other strongly.";
+  if(exclusive < 50){grade="High overlap";text="A large share of the combined library is already duplicated, so raw sharing value is more limited."}
+  else if(exclusive < 70){grade="Moderate complement";text="There is a useful amount of unique content on both sides, with some meaningful duplication."}
+  $("grade").textContent=grade;
+  $("gradeText").textContent=text;
+
+  $("shortCount").textContent=[...shortlist].length;
+
+  const friendPlayed=s.fo.filter(r=>r.playtime_minutes>0).length;
+  const yourPlayed=s.yo.filter(r=>r.playtime_minutes>0).length;
+  const friendHours=s.fo.reduce((n,r)=>n+r.playtime_minutes,0);
+  const yourHours=s.yo.reduce((n,r)=>n+r.playtime_minutes,0);
+
+  $("insightList").innerHTML = `
+    <div class="insight"><b>${s.fo.length} possible additions for you</b><span>${fn.toFixed(0)}% of Folk's compared library is not already in Sin's.</span></div>
+    <div class="insight"><b>${s.yo.length} unique games from your side</b><span>Folk would see ${yn.toFixed(0)}% of Sin's compared library as new.</span></div>
+    <div class="insight"><b>${friendPlayed} Folk-only games have playtime</b><span>Folk has logged ${Math.round(friendHours/60).toLocaleString()} hours across them, which can help identify good recommendations.</span></div>`;
+}
+function renderGameList(){
+  const q=$("searchInput").value.trim().toLowerCase();
+  const sort=$("sortSelect").value;
+  let list=rows.filter(r=>{
+    if(currentFilter==="shortlist") return shortlist.has(keyOf(r));
+    if(currentFilter!=="all" && r.category!==currentFilter) return false;
+    return true;
+  }).filter(r=>!q || r.game.toLowerCase().includes(q) || String(r.appid).includes(q));
+
+  list.sort((a,b)=>{
+    if(sort==="play_desc") return b.playtime_minutes-a.playtime_minutes || a.game.localeCompare(b.game);
+    if(sort==="play_asc") return a.playtime_minutes-b.playtime_minutes || a.game.localeCompare(b.game);
+    return a.game.localeCompare(b.game);
+  });
+
+  const titles={friend_only:"Folk-only games",your_only:"Sin-only games",shared:"Games both own",shortlist:"Sin's shortlist",all:"All compared games"};
+  $("resultTitle").textContent=titles[currentFilter];
+  $("resultCount").textContent=`${list.length} result${list.length===1?"":"s"}`;
+
+  if(!list.length){
+    $("gameList").innerHTML=`<div class="empty">No games match this view.</div>`;
+    return;
+  }
+
+  $("gameList").innerHTML=list.map(r=>{
+    const k=keyOf(r), canStar=r.category==="friend_only", on=shortlist.has(k);
+    return `<article class="game">
+      <div>
+        <div class="gameTitle">${escapeHtml(r.game)}</div>
+        <div class="meta"><span class="badge">${categoryLabel(r.category)}</span><span>App ${r.appid}</span><span>${fmtHours(r.playtime_minutes)}</span></div>
+      </div>
+      ${canStar ? `<button class="star ${on?"on":""}" type="button" data-star="${escapeHtml(k)}" aria-label="${on?"Remove from":"Add to"} shortlist">${on?"★":"☆"}</button>` : ""}
+    </article>`;
+  }).join("");
+
+  document.querySelectorAll("[data-star]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const k=btn.dataset.star;
+      if(shortlist.has(k)){shortlist.delete(k);showToast("Removed from shortlist")}
+      else{shortlist.add(k);showToast("Added to shortlist")}
+      saveShortlist(); renderOverview(); renderGameList();
+    });
+  });
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function rankHTML(list, cls){
+  const top=[...list].sort((a,b)=>b.playtime_minutes-a.playtime_minutes).slice(0,8);
+  const max=Math.max(1,...top.map(r=>r.playtime_minutes));
+  return top.map((r,i)=>`<div class="rankRow">
+    <div class="rankName">${i+1}. ${escapeHtml(r.game)}</div>
+    <div class="rankHours">${fmtHours(r.playtime_minutes)}</div>
+    <div class="miniTrack"><div class="miniFill ${cls}" style="width:${Math.max(2,(r.playtime_minutes/max)*100)}%"></div></div>
+  </div>`).join("") || `<div class="empty">No playtime data.</div>`;
+}
+function median(arr){
+  if(!arr.length)return 0;
+  const a=[...arr].sort((x,y)=>x-y), m=Math.floor(a.length/2);
+  return a.length%2?a[m]:(a[m-1]+a[m])/2;
+}
+function renderInsights(){
+  const s=stats();
+  $("friendRank").innerHTML=rankHTML(s.fo,"");
+  $("yourRank").innerHTML=rankHTML(s.yo,"you");
+
+  const metrics=[
+    ["Folk-only playtime",`${Math.round(s.fo.reduce((n,r)=>n+r.playtime_minutes,0)/60).toLocaleString()} total hours`],
+    ["Sin-only playtime",`${Math.round(s.yo.reduce((n,r)=>n+r.playtime_minutes,0)/60).toLocaleString()} total hours`],
+    ["Folk-only median",`${(median(s.fo.map(r=>r.playtime_minutes))/60).toFixed(1)} hours per title`],
+    ["Sin-only median",`${(median(s.yo.map(r=>r.playtime_minutes))/60).toFixed(1)} hours per title`],
+  ];
+  $("playtimeInsights").innerHTML=metrics.map(([a,b])=>`<div class="insight"><b>${a}</b><span>${b}</span></div>`).join("");
+}
+function setSection(name){
+  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active",s.dataset.section===name));
+  document.querySelectorAll(".navBtn").forEach(b=>b.classList.toggle("active",b.dataset.nav===name));
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(name==="browse")renderGameList();
+  if(name==="insights")renderInsights();
+}
+function setFilter(filter){
+  currentFilter=filter;
+  document.querySelectorAll(".chip").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
+  renderGameList();
+}
+function parseCSV(text){
+  const out=[]; let row=[], field="", quoted=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(quoted){
+      if(c==='"' && text[i+1]==='"'){field+='"';i++}
+      else if(c==='"'){quoted=false}
+      else field+=c;
+    } else {
+      if(c==='"')quoted=true;
+      else if(c===','){row.push(field);field=""}
+      else if(c==='\n'){row.push(field);out.push(row);row=[];field=""}
+      else if(c!=='\r')field+=c;
+    }
+  }
+  row.push(field); if(row.some(x=>x!==""))out.push(row);
+  return out;
+}
+function loadCSV(text){
+  const matrix=parseCSV(text);
+  if(matrix.length<2)throw new Error("CSV has no data rows.");
+  const headers=matrix[0].map(x=>x.trim().toLowerCase());
+  const required=["category","appid","game","playtime_minutes"];
+  if(!required.every(x=>headers.includes(x)))throw new Error("CSV must contain category, appid, game, and playtime_minutes.");
+  const idx=Object.fromEntries(headers.map((h,i)=>[h,i]));
+  const next=[];
+  for(const r of matrix.slice(1)){
+    const category=(r[idx.category]||"").trim();
+    if(!["friend_only","your_only","shared"].includes(category))continue;
+    const appid=parseInt(r[idx.appid],10);
+    const game=(r[idx.game]||"").trim();
+    const play=Math.max(0,parseInt(r[idx.playtime_minutes],10)||0);
+    if(!Number.isFinite(appid)||!game)continue;
+    next.push({category,appid,game,playtime_minutes:play});
+  }
+  if(!next.length)throw new Error("No valid comparison rows were found.");
+  rows=next; cleanShortlist(); renderAll(); showToast(`Loaded ${rows.length} games`);
+}
+function renderAll(){
+  renderOverview(); renderGameList(); renderInsights();
+}
+document.querySelectorAll(".navBtn").forEach(b=>b.addEventListener("click",()=>setSection(b.dataset.nav)));
+document.querySelectorAll(".chip").forEach(b=>b.addEventListener("click",()=>setFilter(b.dataset.filter)));
+$("searchInput").addEventListener("input",renderGameList);
+$("sortSelect").addEventListener("change",renderGameList);
+$("viewShortBtn").addEventListener("click",()=>{setSection("browse");setFilter("shortlist")});
+$("fileInput").addEventListener("change",e=>{
+  const f=e.target.files && e.target.files[0]; if(!f)return;
+  const reader=new FileReader();
+  reader.onload=()=>{try{loadCSV(String(reader.result||""))}catch(err){showToast(err.message)}};
+  reader.readAsText(f); e.target.value="";
+});
+$("resetBtn").addEventListener("click",()=>{rows=ORIGINAL_DATA.map(x=>({...x}));cleanShortlist();renderAll();showToast("Reset to original result")});
+renderAll();
+</script>
+</body>
+</html>
